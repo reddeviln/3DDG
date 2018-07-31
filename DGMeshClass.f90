@@ -8,6 +8,7 @@ MODULE DGMeshClass
   
   TYPE DGMesh
      INTEGER                                     :: K
+     REAL(KIND=RP)                               :: lambdamax
      TYPE(NodalDGStorage)                        :: DG
      TYPE(DGElement)   ,ALLOCATABLE,DIMENSION(:) :: e
      TYPE(NodePointers),ALLOCATABLE,DIMENSION(:) :: px,py,pz
@@ -15,11 +16,12 @@ MODULE DGMeshClass
 
 CONTAINS
 
-  SUBROUTINE ConstructMesh3D(this,x_nodes,K,N,nEqn)
+  SUBROUTINE ConstructMesh3D(this,x_nodes,K,N,nEqn,lambdamax)
     IMPLICIT NONE
     TYPE(DGMesh)                  ,INTENT(INOUT)  :: this
     INTEGER                       ,INTENT(IN)     :: K,N,nEqn
     REAL(KIND=RP),DIMENSION(0:K)  ,INTENT(IN)     :: x_nodes
+    REAL(KIND=RP)                 ,INTENT(IN)     :: lambdamax
     
     !Local Variables
 
@@ -28,12 +30,16 @@ CONTAINS
     nq=k**(1/3)
 
     this%K = K
+    this%lambdamax=lambdamax
     ALLOCATE(this%e(K),this%px(0:K),this%py(0:K),this%pz(0:K))
     CALL ConstructNodalDGStorage(this%DG,N)
     DO i=1,K
        CALL ConstructDGElement(this%e(i),nEqn,x_nodes(i-1),x_nodes(i)&
             &,x_nodes(i-1),x_nodes(i),x_nodes(i-1),x_nodes(i),N)
     ENDDO
+    !/////////////////////////////////////////////////////
+    !@TODO set pointers correctly
+    !////////////////////////////////////////////////////
     !setting the neighboring element pointers
     this%px%eLeft=0
     this%px%eRight=0
@@ -90,6 +96,62 @@ CONTAINS
 
   !//////////////////////////////////////
 
+  SUBROUTINE GlobalTimeDerivative(this,t)
+    IMPLICIT NONE
+    TYPE(DGMESH) ,INTENT(INOUT)                     :: this
+    REAL(KIND=RP),INTENT(IN)                        :: t
+
+    !local variables
+    
+    REAL(KIND=RP),DIMENSION(0:this%DG%N,0:this%DG%N, 0:this%DG%N,&
+         & this%e(1)%nEqn) :: F,G,H
+    INTEGER                                         :: i,j,idL,idR&
+         &,nEqn,N
+
+    N    = this%DG%N
+    nEqn = this%e(1)%nEqn
+
+    !Solve Riemann problem to get numerical flux at the interface
+
+    !x-direction
+    DO j=1,this%K
+       idL=this%px(j)%eLeft
+       idR=this%px(j)%eRight
+       CALL RiemannSolver(this%e(idL)%QR,this%e(idR)%QL,F,this%e(idR)&
+            &%nEqn,N,1,this%lambdamax)
+       this%e(idR)%FstarL = -F
+       this%e(idL)%FstarR = F
+    ENDDO
+
+    !y-direction
+    DO j=1,this%K
+       idL=this%py(j)%eLeft
+       idR=this%py(j)%eRight
+       CALL RiemannSolver(this%e(idL)%QR,this%e(idR)%QL,G,this%e(idR)&
+            &%nEqn,N,2,this%lambdamax)
+       this%e(idR)%GstarL = -G
+       this%e(idL)%GstarR = G
+    ENDDO
+
+    !z-direction
+    DO j=1,this%K
+       idL=this%pz(j)%eLeft
+       idR=this%pz(j)%eRight
+       CALL RiemannSolver(this%e(idL)%QR,this%e(idR)%QL,H,this%e(idR)&
+            &%nEqn,N,3,this%lambdamax)
+       this%e(idR)%FstarL = -H
+       this%e(idL)%FstarR = H
+    ENDDO
+
+    !Compute local time derivative on each element
+    DO j=1,this%K
+       CALL LocalTimeDerivative(this%e(j),this%DG)
+    ENDDO
+    
+  END SUBROUTINE GlobalTimeDerivative
+     
+  !//////////////////////////////////////
+  
   SUBROUTINE DestructDGMesh(this)
     TYPE(DGMesh),INTENT(INOUT) :: this
     INTEGER                    :: i

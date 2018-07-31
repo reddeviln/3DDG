@@ -51,20 +51,15 @@ CONTAINS
     ! Local Variables
 
     INTEGER                                   :: j,N,nEqn
-    REAL(KIND=RP),DIMENSION(0:DG%N,0:DG%N,0:DG%N,this%nEqn) :: F,F_prime,G,G_prime&
-         &,H,H_prime
+    REAL(KIND=RP),DIMENSION(0:DG%N,0:DG%N,0:DG%N,this%nEqn) ::F_prime,G_prime&
+         &,H_prime
     
     nEqn = this%nEqn
     N    = DG%N
     
-    ! Calculate the Fluxes
-    
-    CALL EulerFlux(this%Q,F,1,nEqn)
-    CALL EulerFlux(this%Q,G,2,nEqn)
-    CALL EulerFlux(this%Q,H,3,nEqn)
     
     CALL SystemDGDerivative(this%FstarR,this%FstarL,this%GstarR,this&
-         &%GstarL,this%HstarR,this%HstarL,F,G,H,F_prime,G_prime&
+         &%GstarL,this%HstarR,this%HstarL,F_prime,G_prime&
          &,H_prime,DG%D,DG%weights,DG%l_at_one,DG%l_at_minus_one,this%Q&
          &,nEqn,N)
     this%Q_dot=(-8.0_RP/this%delta_x**3)*(F_prime+G_prime+H_prime)
@@ -73,12 +68,12 @@ CONTAINS
   
 !////////////////////////
 
-  SUBROUTINE SystemDGDerivative(FR,FL,GR,GL,HR,HL,F,G,H,Fprime,Gprime&
+  SUBROUTINE SystemDGDerivative(FR,FL,GR,GL,HR,HL,Fprime,Gprime&
        &,Hprime,D,weights,l_one,l_minus_one,Q,nEqn,N)
     IMPLICIT NONE
     INTEGER                                  ,INTENT(IN) :: nEqn,N
     REAL(KIND=RP),DIMENSION(0:N,0:N,nEqn)    ,INTENT(IN) :: FR,FL,GL,GR,HL,HR
-    REAL(KIND=RP),DIMENSION(0:N,0:N,0:N,nEqn),INTENT(IN) :: F,G,H,Q
+    REAL(KIND=RP),DIMENSION(0:N,0:N,0:N,nEqn),INTENT(IN) :: Q
     REAL(KIND=RP),DIMENSION(0:N,0:N,0:N,nEqn),INTENT(OUT):: Fprime,Gprime,Hprime
     REAL(KIND=RP),DIMENSION(0:N,0:N)         ,INTENT(IN) :: D
     REAL(KIND=RP),DIMENSION(0:N)             ,INTENT(IN) :: weights,l_one,l_minus_one
@@ -93,9 +88,9 @@ CONTAINS
 
     !compute volume Terms
 
-    CALL computeVolumePI(D,Q,1,Fprime)
-    CALL computeVolumePI(D,Q,2,Gprime)
-    CALL computeVolumePI(D,Q,3,Hprime)
+    CALL computeVolumePI(D,Q,1,Fprime,N,nEqn)
+    CALL computeVolumePI(D,Q,2,Gprime,N,nEqn)
+    CALL computeVolumePI(D,Q,3,Hprime,N,nEqn)
 
     !compute surface Terms
 
