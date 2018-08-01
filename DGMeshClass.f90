@@ -1,5 +1,6 @@
 MODULE DGMeshClass
   USE DGElementClass
+  USE FluxRoutines
   IMPLICIT NONE
 
   TYPE NodePointers
@@ -16,82 +17,84 @@ MODULE DGMeshClass
 
 CONTAINS
 
-  SUBROUTINE ConstructMesh3D(this,x_nodes,K,N,nEqn,lambdamax)
+  SUBROUTINE ConstructMesh3D(this,x_nodes,NQ,N,nEqn,lambdamax)
     IMPLICIT NONE
-    TYPE(DGMesh)                  ,INTENT(INOUT)  :: this
-    INTEGER                       ,INTENT(IN)     :: K,N,nEqn
-    REAL(KIND=RP),DIMENSION(0:K)  ,INTENT(IN)     :: x_nodes
-    REAL(KIND=RP)                 ,INTENT(IN)     :: lambdamax
+    TYPE(DGMesh)                    ,INTENT(INOUT)  :: this
+    INTEGER                         ,INTENT(IN)     :: NQ,N,nEqn
+    REAL(KIND=RP),DIMENSION(0:NQ**3),INTENT(IN)     :: x_nodes
+    REAL(KIND=RP)                   ,INTENT(IN)     :: lambdamax
     
     !Local Variables
 
-    INTEGER :: i,j,l,nq
+    INTEGER :: i,j,l,K
 
-    nq=k**(1/3)
-
+    k=nq**3
+    
     this%K = K
     this%lambdamax=lambdamax
-    ALLOCATE(this%e(K),this%px(0:K),this%py(0:K),this%pz(0:K))
+    ALLOCATE(this%e(K),this%px(K),this%py(K),this%pz(K))
     CALL ConstructNodalDGStorage(this%DG,N)
-    DO i=1,K
-       CALL ConstructDGElement(this%e(i),nEqn,x_nodes(i-1),x_nodes(i)&
-            &,x_nodes(i-1),x_nodes(i),x_nodes(i-1),x_nodes(i),N)
-    ENDDO
-    !/////////////////////////////////////////////////////
-    !@TODO set pointers correctly
-    !////////////////////////////////////////////////////
-    !setting the neighboring element pointers
+    DO l=1,NQ
+       DO j=1,NQ
+          DO i=1,NQ
+             CALL ConstructDGElement(this%e(i+(j-1)*NQ+(l-1)*NQ**2),nEqn,x_nodes(i-1),x_nodes(i)&
+                  &,x_nodes(j-1),x_nodes(j),x_nodes(l-1),x_nodes(l),N)
+          END DO
+       END DO
+    END DO
+    
+    !setting the  element pointers
     this%px%eLeft=0
     this%px%eRight=0
+    this%py%eLeft=0
+    this%py%eRight=0
+    this%pz%eLeft=0
+    this%pz%eRight=0
     !x-neighbors
     DO l=1,nq
        DO j=1,nq
-          DO i=2+(j-1)*nq+(l-1)*nq**2,nq+nq*(j&
+          DO i=1+(j-1)*nq+(l-1)*nq**2,nq+nq*(j&
                &-1)+(l-1)*nq**2-1
-             this%px(i)%eLeft = i-1
+             this%px(i)%eLeft = i
              this%px(i)%eRight= i+1
           ENDDO
        ENDDO
     ENDDO
     DO j=1,nq**2
-        i=1+(j-1)*nq
-        this%px(i)%eLeft = i+nq-1
-        this%px(i)%eRight= i+1
         l=j*nq
-        this%px(l)%eLeft = i-1
+        this%px(l)%eLeft = i
         this%px(l)%eRight= i-nq+1
     ENDDO
     !y-neighbors
     DO j= 1,nq
-       DO i=(nq+1)+(j-1)*nq**2,(3*nq)+(j-1)*nq**2
-          this%py(i)%eLeft = i+nq
-          this%py(i)%eRight= i-nq
+       DO i=(1)+(j-1)*nq**2,j*nq**2-nq
+          this%py(i)%eLeft = i
+          this%py(i)%eRight= i+nq
        ENDDO
     ENDDO
     DO j=1,nq
-       DO i=1+(j-1)*nq**2,nq+(j-1)*nq**2
-          this%py(i)%eLeft = i+nq
-          this%py(i)%eRight= i+nq**2-nq
-       ENDDO
-       DO l=(j)*nq**2-nq+1,j*nq**2
-          this%py(i)%eLeft = i-nq**2+nq
-          this%py(i)%eRight= i-nq
+       DO i=1+j*nq**2-nq,j*nq**2
+          this%py(i)%eLeft = i
+          this%py(i)%eRight= i-nq**2+nq
        ENDDO
     ENDDO
     
     !z-neighbors
-    DO i=nq**2+1,K-nq**2
-       this%pz(i)%eLeft =i-nq**2
+    DO i=1,K-nq**2
+       this%pz(i)%eLeft =i
        this%pz(i)%eRight=i+nq**2
     ENDDO
-    DO i=1,nq**2
-       this%pz(i)%eLeft = i+k-nq**2
-       this%pz(i)%eRight= i+nq**2
-    ENDDO
     DO i=K-nq**2+1,K
-       this%pz(i)%eLeft = i-nq**2
+       this%pz(i)%eLeft = i
        this%pz(i)%eRight= i-k+nq**2
     ENDDO
+    IF(any(this%px%eLeft==0).OR. any(this%py%eLeft==0).OR. any(this%pz%eLeft&
+         ==0)) THEN
+       print*,"Initialization failed. Pointers were not set correctly!"
+       CALL exit(1)
+    END IF
+    
+
   END SUBROUTINE ConstructMesh3D
 
   !//////////////////////////////////////
@@ -103,7 +106,7 @@ CONTAINS
 
     !local variables
     
-    REAL(KIND=RP),DIMENSION(0:this%DG%N,0:this%DG%N, 0:this%DG%N,&
+    REAL(KIND=RP),DIMENSION(0:this%DG%N,0:this%DG%N,&
          & this%e(1)%nEqn) :: F,G,H
     INTEGER                                         :: i,j,idL,idR&
          &,nEqn,N
@@ -112,12 +115,21 @@ CONTAINS
     nEqn = this%e(1)%nEqn
 
     !Solve Riemann problem to get numerical flux at the interface
-
-    !x-direction
+    !Set boundary data
+    DO j=1,this%K
+       this%e(i)%QLx=this%e(i)%Q_dot(0,:,:,:)
+       this%e(i)%QRx=this%e(i)%Q_dot(N,:,:,:)
+       this%e(i)%QLy=this%e(i)%Q_dot(:,0,:,:)
+       this%e(i)%QRy=this%e(i)%Q_dot(:,N,:,:)
+       this%e(i)%QLz=this%e(i)%Q_dot(:,:,0,:)
+       this%e(i)%QRz=this%e(i)%Q_dot(:,:,N,:)
+    END DO
+    
+       !x-direction
     DO j=1,this%K
        idL=this%px(j)%eLeft
        idR=this%px(j)%eRight
-       CALL RiemannSolver(this%e(idL)%QR,this%e(idR)%QL,F,this%e(idR)&
+       CALL RiemannSolver(this%e(idL)%QRx,this%e(idR)%QLx,F,this%e(idR)&
             &%nEqn,N,1,this%lambdamax)
        this%e(idR)%FstarL = -F
        this%e(idL)%FstarR = F
@@ -127,7 +139,7 @@ CONTAINS
     DO j=1,this%K
        idL=this%py(j)%eLeft
        idR=this%py(j)%eRight
-       CALL RiemannSolver(this%e(idL)%QR,this%e(idR)%QL,G,this%e(idR)&
+       CALL RiemannSolver(this%e(idL)%QRy,this%e(idR)%QLy,G,this%e(idR)&
             &%nEqn,N,2,this%lambdamax)
        this%e(idR)%GstarL = -G
        this%e(idL)%GstarR = G
@@ -137,10 +149,10 @@ CONTAINS
     DO j=1,this%K
        idL=this%pz(j)%eLeft
        idR=this%pz(j)%eRight
-       CALL RiemannSolver(this%e(idL)%QR,this%e(idR)%QL,H,this%e(idR)&
+       CALL RiemannSolver(this%e(idL)%QRz,this%e(idR)%QLz,H,this%e(idR)&
             &%nEqn,N,3,this%lambdamax)
-       this%e(idR)%FstarL = -H
-       this%e(idL)%FstarR = H
+       this%e(idR)%HstarL = -H
+       this%e(idL)%HstarR = H
     ENDDO
 
     !Compute local time derivative on each element

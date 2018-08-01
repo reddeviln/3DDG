@@ -20,11 +20,11 @@ CONTAINS
     INTEGER             ,INTENT(IN)   :: N
     TYPE(NodalDGStorage),INTENT(OUT)  :: this
     !Local Variables
-    REAL(KIND=RP),ALLOCATABLE,DIMENSION(0:N) :: x, BaryWeights !nodes and weights of interp.
+    REAL(KIND=RP),DIMENSION(0:N) :: x, BaryWeights !nodes and weights of interp.
     INTEGER                                  :: i,j
 
     ALLOCATE(this%l_at_minus_one(0:N),this%l_at_one(0:N),this%weights(0:N))
-    ALLOCATE(this%D(0:N,0:N),this%D_hat(0:N,0:N)
+    ALLOCATE(this%D(0:N,0:N),this%D_hat(0:N,0:N))
     this%l_at_minus_one   = 0.0_RP
     this%l_at_one         = 0.0_RP
     this%weights          = 0.0_RP
@@ -32,7 +32,7 @@ CONTAINS
     this%N                = N
 
     call LegendreGaussLobattoNodesAndWeights(N,x,this%weights)
-    BaryWeights=barzweight(x,N)
+    BaryWeights=baryzweight(x,N)
     do i=0,n
        this%l_at_minus_one(i)=lagrangevalue(x,i,N,-1.0_RP)
        this%l_at_one(i)=lagrangevalue(x,i,N,1.0_RP)
@@ -45,11 +45,10 @@ CONTAINS
     enddo
   end SUBROUTINE ConstructNodalDGStorage
   !
-  !/////////////////////////////////////////////////////////////////////////////////////
-  !
+  !////////////////////////////////////////////////////////////////////////
 
   SUBROUTINE DestructNodalDGStorage(this)
-    IMPLCIT NONE
+    IMPLICIT NONE
     TYPE(NODALDGStorage) :: this
 
     this%N=-1

@@ -1,10 +1,22 @@
 MODULE FluxRoutines
+  USE Diverses
   IMPLICIT NONE
   !Contains many different flux functions and Riemann solvers
-  REAL(KIND=RP)         :: mu,g=9.81,R,gamma
+  REAL(KIND=RP)         :: mu,g=9.812_RP,R=287.058_RP,gamma,Pr
 
 CONTAINS
 
+  SUBROUTINE setPhysPar(muVal,gammaVal,PrVal)
+    IMPLICIT NONE
+    REAL(KIND=RP),INTENT(IN) ::muVal,gammaVal,PrVal
+
+    mu=muVal
+    gamma=gammaVal
+    Pr=PrVal
+  END SUBROUTINE setPhysPar
+
+  !//////////////////////////////////////////////////////
+  
   SUBROUTINE computeVolumePI(D,Q,dir,Fout,N,nEqn)
     IMPLICIT NONE
     REAL(KIND=RP),DIMENSION(0:N,0:N)         ,INTENT(IN) :: D
@@ -15,6 +27,7 @@ CONTAINS
     !Local Variables
     INTEGER                                   :: i,j,k,l
     REAL(KIND=RP),DIMENSION(nEqn,0:N,0:N,0:N) :: Foutc
+    REAL(KIND=RP),DIMENSION(0:N,nEqn)         :: Fsharp
     SELECT CASE (dir)
     CASE(1)
        DO k=0,N
@@ -37,7 +50,7 @@ CONTAINS
                 CALL computeEulerPI(Q(i,j,k,:),Q(i,:,k,:),N,nEqn&
                      &,dir,Fsharp)
                 DO l=1,nEqn
-                   Foutc(l,i,j,k)=2.0_RP*dot_product(D(i,:),Fsharp(:,l))
+                   Foutc(l,i,j,k)=2.0_RP*dot_product(D(j,:),Fsharp(:,l))
                 END DO
              END DO
           END DO
@@ -50,7 +63,7 @@ CONTAINS
                 CALL computeEulerPI(Q(i,j,k,:),Q(i,j,:,:),N,nEqn&
                      &,dir,Fsharp)
                 DO l=1,nEqn
-                   Foutc(l,i,j,k)=2.0_RP*dot_product(D(i,:),Fsharp(:,l))
+                   Foutc(l,i,j,k)=2.0_RP*dot_product(D(k,:),Fsharp(:,l))
                 END DO
              END DO
           END DO
@@ -75,34 +88,34 @@ CONTAINS
     !Local Variables
 
     INTEGER                            :: i,j
-    REAL(KIND=RP),DIMENSION(nEqn)      :: p1,h1
-    REAL(KIND=RP),DIMENSION(0:N,nEqn)  :: p2,h2
+    REAL(KIND=RP)                      :: p1,h1
+    REAL(KIND=RP),DIMENSION(0:N)       :: p2,h2
     
     p1=(gamma-1.0_RP)*(QL(5)-0.5_RP*(QL(2)*QL(2)+QL(3)*QL(3)+QL(4)*QL(4))/QL(1))
     p2=(gamma-1.0_RP)*(QR(:,5)-0.5_RP*(QR(:,2)*QR(:,2)+QR(:,3)*QR(:&
          &,3)+QR(:,4)*QR(:,4))/QR(:,1))
     h1=(QL(5)+p1)/QL(1)
-    h2=(QL(:,5)+p2)/QL(:,1)
+    h2=(QR(:,5)+p2)/QR(:,1)
     SELECT CASE(dir)
     CASE(1)
        
        DO i=0,N
           Fsharp(i,1)=0.25_RP*(QL(1)+QR(i,1))*(QL(2)/QL(1)+QR(i,2)/QR(i,1))
           Fsharp(i,2)=Fsharp(i,1)*0.5_RP*(QL(2)/QL(1)+QR(i,2)/QR(i,1))+0.5_RP&
-               &*(p1+p2)
+               &*(p1+p2(i))
           Fsharp(i,3)=Fsharp(i,1)*0.5_RP*(QL(3)/QL(1)+QR(i,3)/QR(i,1))
           Fsharp(i,4)=Fsharp(i,1)*0.5_RP*(QL(4)/QL(1)+QR(i,4)/QR(i,1))
-          Fsharp(i,5)=Fsharp(i,1)*0.5_RP*(h1+h2)
+          Fsharp(i,5)=Fsharp(i,1)*0.5_RP*(h1+h2(i))
        END DO
 !
     CASE(2)
        DO i=0,N
           Fsharp(i,1)=0.25_RP*(QL(1)+QR(i,1))*(QL(3)/QL(1)+QR(i,3)/QR(i,1))
           Fsharp(i,3)=Fsharp(i,1)*0.5_RP*(QL(3)/QL(1)+QR(i,3)/QR(i,1))+0.5_RP&
-               &*(p1+p2)
+               &*(p1+p2(i))
           Fsharp(i,2)=Fsharp(i,1)*0.5_RP*(QL(2)/QL(1)+QR(i,2)/QR(i,1))
           Fsharp(i,4)=Fsharp(i,1)*0.5_RP*(QL(4)/QL(1)+QR(i,4)/QR(i,1))
-          Fsharp(i,5)=Fsharp(i,1)*0.5_RP*(h1+h2)
+          Fsharp(i,5)=Fsharp(i,1)*0.5_RP*(h1+h2(i))
        END DO
 !
     CASE(3)
@@ -110,14 +123,63 @@ CONTAINS
        DO i=0,N
           Fsharp(i,1)=0.25_RP*(QL(1)+QR(i,1))*(QL(4)/QL(1)+QR(i,4)/QR(i,1))
           Fsharp(i,4)=Fsharp(i,1)*0.5_RP*(QL(4)/QL(1)+QR(i,4)/QR(i,1))+0.5_RP&
-               &*(p1+p2)
+               &*(p1+p2(i))
           Fsharp(i,3)=Fsharp(i,1)*0.5_RP*(QL(3)/QL(1)+QR(i,3)/QR(i,1))
           Fsharp(i,2)=Fsharp(i,1)*0.5_RP*(QL(2)/QL(1)+QR(i,2)/QR(i,1))
-          Fsharp(i,5)=Fsharp(i,1)*0.5_RP*(h1+h2)
+          Fsharp(i,5)=Fsharp(i,1)*0.5_RP*(h1+h2(i))
        END DO
     END SELECT
   END SUBROUTINE computeEulerPI
 
+  !////////////////////////////////////////////////////////////////////
+  
+  SUBROUTINE computeEulerPIinterf(QL,QR,N,nEqn,dir,Fsharp)
+    IMPLICIT NONE
+!does the same as computeEulerPI but only takes one node as an argument
+    INTEGER                           ,INTENT(IN) :: N, nEqn,dir
+    REAL(KIND=RP),DIMENSION(nEqn)     ,INTENT(IN) :: QL,QR
+    REAL(KIND=RP),DIMENSION(nEqn) ,INTENT(OUT):: Fsharp
+
+    !Local Variables
+
+    INTEGER                            :: i,j
+    REAL(KIND=RP)                      :: p1,h1,p2,h2
+    
+    p1=(gamma-1.0_RP)*(QL(5)-0.5_RP*(QL(2)*QL(2)+QL(3)*QL(3)+QL(4)*QL(4))/QL(1))
+    p2=(gamma-1.0_RP)*(QR(5)-0.5_RP*(QR(2)*QR(2)+QR(3)*QR(3)+QR(4)*QR(4))/QR(1))
+    h1=(QL(5)+p1)/QL(1)
+    h2=(QL(5)+p2)/QL(1)
+    SELECT CASE(dir)
+    CASE(1)
+       
+       Fsharp(1)=0.25_RP*(QL(1)+QR(1))*(QL(2)/QL(1)+QR(2)/QR(1))
+       Fsharp(2)=Fsharp(1)*0.5_RP*(QL(2)/QL(1)+QR(2)/QR(1))+0.5_RP&
+            &*(p1+p2)
+       Fsharp(3)=Fsharp(1)*0.5_RP*(QL(3)/QL(1)+QR(3)/QR(1))
+       Fsharp(4)=Fsharp(1)*0.5_RP*(QL(4)/QL(1)+QR(4)/QR(1))
+       Fsharp(5)=Fsharp(1)*0.5_RP*(h1+h2)
+!
+    CASE(2)
+       
+       Fsharp(1)=0.25_RP*(QL(1)+QR(1))*(QL(3)/QL(1)+QR(3)/QR(1))
+       Fsharp(3)=Fsharp(1)*0.5_RP*(QL(3)/QL(1)+QR(3)/QR(1))+0.5_RP&
+            &*(p1+p2)
+       Fsharp(2)=Fsharp(1)*0.5_RP*(QL(2)/QL(1)+QR(2)/QR(1))
+       Fsharp(4)=Fsharp(1)*0.5_RP*(QL(4)/QL(1)+QR(4)/QR(1))
+       Fsharp(5)=Fsharp(1)*0.5_RP*(h1+h2)
+!
+    CASE(3)
+       
+       Fsharp(1)=0.25_RP*(QL(1)+QR(1))*(QL(4)/QL(1)+QR(4)/QR(1))
+       Fsharp(4)=Fsharp(1)*0.5_RP*(QL(4)/QL(1)+QR(4)/QR(1))+0.5_RP&
+            &*(p1+p2)
+       Fsharp(3)=Fsharp(1)*0.5_RP*(QL(3)/QL(1)+QR(3)/QR(1))
+       Fsharp(2)=Fsharp(1)*0.5_RP*(QL(2)/QL(1)+QR(2)/QR(1))
+       Fsharp(5)=Fsharp(1)*0.5_RP*(h1+h2)
+
+    END SELECT
+  END SUBROUTINE computeEulerPIinterf
+  
  !////////////////////////////////////////////////////////////////////
 
   SUBROUTINE RiemannSolver(QR,QL,Fout,nEqn,N,dir,lambdamax)
@@ -129,11 +191,16 @@ CONTAINS
 
     !local variables
 
-    REAL(KIND=RP),DIMENSION(0:N,0:N,nEqn)             :: Fsharp
-!///////////////////////////////////////////////////
-!@TODO dimension issue!
-!/////////////////////////////////////////////////
-    CALL computeEulerPI(QL,QR,N,nEqn,dir,Fsharp)
+    REAL(KIND=RP),DIMENSION(0:N,0:N,nEqn)   :: Fsharp
+    INTEGER                                 :: i,j
+
+    DO i=0,N
+       DO j=0,N
+          CALL computeEulerPIinterf(QL(i,j,:),QR(i,j,:),N,nEqn,dir&
+               &,Fsharp(i,j,:))
+       END DO
+    END DO
+    
     Fout=Fsharp-0.5_RP*lambdamax*(QR-QL)
   END SUBROUTINE RiemannSolver
 END MODULE FluxRoutines

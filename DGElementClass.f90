@@ -4,9 +4,10 @@ MODULE DGElementClass
   IMPLICIT NONE
 
   TYPE DGElement
-     REAL(KIND=RP)                                :: delta_x,xL,xR,yL,yR,zL,zR
+     REAL(KIND=RP)                                :: delta_x,xL,xR,yL,yR,zL,zR,lambdamax
      INTEGER                                      :: nEqn
-     REAL(KIND=RP),ALLOCATABLE,DIMENSION(:,:,:)   :: FstarR,FstarL,GstarR,GstarL,HstarR,HstarL
+     REAL(KIND=RP),ALLOCATABLE,DIMENSION(:,:,:)   :: FstarR,FstarL&
+          &,GstarR,GstarL,HstarR,HstarL,QLx,QRx,QLy,QRy,QRz,QLz
      REAL(KIND=RP),ALLOCATABLE,DIMENSION(:,:,:,:) :: Q,Q_dot
   END TYPE DGElement
 
@@ -38,7 +39,14 @@ CONTAINS
     this%HstarL     = 0.0_RP
     this%HstarR     = 0.0_RP
     this%Q          = 0.0_RP
+    this%QLx        = 0.0_RP
+    this%QRx        = 0.0_RP
+    this%QLy        = 0.0_RP
+    this%QRy        = 0.0_RP
+    this%QLz        = 0.0_RP
+    this%QRz        = 0.0_RP
     this%Q_dot      = 0.0_RP
+    this%lambdamax  = 0.0_RP
   END SUBROUTINE ConstructDGElement
   
 !////////////////////////////////////////////////////////////////////
@@ -98,12 +106,12 @@ CONTAINS
        DO k=0,N
           DO j=0,N
              DO i=1,nEqn
-                Fprime(l,k,j,i)=Fprime(l,k,j,i)+FR(k,j,i)*l_one(l)+FL(k,j,i)*&
-                     l_minus_one(l))/weights(l)
-                Gprime(l,k,j,i)=Gprime(l,k,j,i)+GR(l,j,i)*l_one(k)+FL(l,j,i)*&
-                     l_minus_one(k))/weights(k)
-                Hprime(l,k,j,i)=Hprime(l,k,j,i)+HR(l,k,i)*l_one(j)+FL(l,k,i)*&
-                     l_minus_one(j))/weights(j)
+                Fprime(l,k,j,i)=Fprime(l,k,j,i)+(FR(k,j,i)*l_one(l)+&
+                     FL(k,j,i)*l_minus_one(l))/weights(l)
+                Gprime(l,k,j,i)=Gprime(l,k,j,i)+(GR(l,j,i)*l_one(k)+&
+                     GL(l,j,i)*l_minus_one(k))/weights(k)
+                Hprime(l,k,j,i)=Hprime(l,k,j,i)+(HR(l,k,i)*l_one(j)+&
+                     HL(l,k,i)*l_minus_one(j))/weights(j)
              ENDDO
           ENDDO
        ENDDO
@@ -125,8 +133,9 @@ CONTAINS
     this%zL         = 0.0_RP
     this%zR         = 0.0_RP
     this%delta_x    = 0.0_RP
-    DEALLOCATE(this%FstarR,this%FstarL,this%GstarR,this%GstarLthis&
-         &%HstarR,this%HstarL,this%Q,this%Q_dot)
+    DEALLOCATE(this%FstarR,this%FstarL,this%GstarR,this%GstarL,this&
+         &%HstarR,this%HstarL,this%Q,this%Q_dot,this%QLx,this%QRx&
+         &,this%QLy,this%QRy,this%QRz,this%QLz)
 
   END SUBROUTINE DestructElement
   
