@@ -71,7 +71,10 @@ CONTAINS
     CASE DEFAULT
        print*,"specify 1,2 or 3 for flux direction"
     END SELECT
-    Fout=cshift(Foutc,-1,1)
+    DO i=1,nEqn
+       Fout(:,:,:,i)=Foutc(i,:,:,:)
+    END DO
+    
     
   END SUBROUTINE computeVolumePI
 
@@ -201,8 +204,44 @@ CONTAINS
        END DO
     END DO
     
-    Fout=Fsharp-0.5_RP*lambdamax*(QR-QL)
+    Fout=Fsharp-0.5_RP*lambdamax*(-QR+QL)
   END SUBROUTINE RiemannSolver
+
+  !////////////////////////////////////////////////////////////////////
+
+  SUBROUTINE EulerAnalyticFlux(Q,Fout,dir,N,nEqn)
+    IMPLICIT NONE
+    INTEGER                              ,INTENT(IN) :: N, nEqn, dir
+    REAL(KIND=RP),DIMENSION(0:N,0:N,nEqn),INTENT(IN) :: Q
+    REAL(KIND=RP),DIMENSION(0:N,0:N,nEqn),INTENT(OUT):: Fout
+
+    !local variables
+    REAL(KIND=RP),DIMENSION(0:n,0:n) :: p,h
+    p=(gamma-1.0_RP)*(Q(:,:,5)-0.5_RP*(Q(:,:,2)*Q(:,:,2)+Q(:,:,3)*Q(:&
+         &,:,3)+Q(:,:,4)*Q(:,:,4))/Q(:,:,1))
+    h=(Q(:,:,5)+p)/Q(:,:,1)
+    SELECT CASE(dir)
+    CASE(1)
+       Fout(:,:,1)=Q(:,:,2)
+       Fout(:,:,2)=Q(:,:,2)**2/Q(:,:,1)+p
+       Fout(:,:,3)=Q(:,:,2)*Q(:,:,3)/Q(:,:,1)
+       Fout(:,:,4)=Q(:,:,2)*Q(:,:,4)/Q(:,:,1)
+       Fout(:,:,5)=Q(:,:,2)*h
+    CASE(2)
+       Fout(:,:,1)=Q(:,:,3)
+       Fout(:,:,2)=Q(:,:,3)*Q(:,:,2)/Q(:,:,1)
+       Fout(:,:,3)=Q(:,:,3)**2/Q(:,:,1)+p
+       Fout(:,:,4)=Q(:,:,3)*Q(:,:,4)/Q(:,:,1)
+       Fout(:,:,5)=Q(:,:,3)*h
+    CASE(3)
+       Fout(:,:,1)=Q(:,:,4)
+       Fout(:,:,2)=Q(:,:,4)*Q(:,:,2)/Q(:,:,1)
+       Fout(:,:,3)=Q(:,:,4)*Q(:,:,3)/Q(:,:,1)
+       Fout(:,:,4)=Q(:,:,4)**2/Q(:,:,1)+p
+       Fout(:,:,5)=Q(:,:,4)*h
+    END SELECT
+  END SUBROUTINE EulerAnalyticFlux
+  
 END MODULE FluxRoutines
 
        

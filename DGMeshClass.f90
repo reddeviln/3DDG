@@ -21,7 +21,7 @@ CONTAINS
     IMPLICIT NONE
     TYPE(DGMesh)                    ,INTENT(INOUT)  :: this
     INTEGER                         ,INTENT(IN)     :: NQ,N,nEqn
-    REAL(KIND=RP),DIMENSION(0:NQ**3),INTENT(IN)     :: x_nodes
+    REAL(KIND=RP),DIMENSION(0:NQ)   ,INTENT(IN)     :: x_nodes
     REAL(KIND=RP)                   ,INTENT(IN)     :: lambdamax
     
     !Local Variables
@@ -34,6 +34,7 @@ CONTAINS
     this%lambdamax=lambdamax
     ALLOCATE(this%e(K),this%px(K),this%py(K),this%pz(K))
     CALL ConstructNodalDGStorage(this%DG,N)
+    print*,"Constructing the Elements..."
     DO l=1,NQ
        DO j=1,NQ
           DO i=1,NQ
@@ -42,7 +43,7 @@ CONTAINS
           END DO
        END DO
     END DO
-    
+    print*,"Setting the element neighbors.."
     !setting the  element pointers
     this%px%eLeft=0
     this%px%eRight=0
@@ -116,7 +117,7 @@ CONTAINS
 
     !Solve Riemann problem to get numerical flux at the interface
     !Set boundary data
-    DO j=1,this%K
+    DO i=1,this%K
        this%e(i)%QLx=this%e(i)%Q_dot(0,:,:,:)
        this%e(i)%QRx=this%e(i)%Q_dot(N,:,:,:)
        this%e(i)%QLy=this%e(i)%Q_dot(:,0,:,:)
@@ -124,13 +125,12 @@ CONTAINS
        this%e(i)%QLz=this%e(i)%Q_dot(:,:,0,:)
        this%e(i)%QRz=this%e(i)%Q_dot(:,:,N,:)
     END DO
-    
        !x-direction
     DO j=1,this%K
        idL=this%px(j)%eLeft
        idR=this%px(j)%eRight
        CALL RiemannSolver(this%e(idL)%QRx,this%e(idR)%QLx,F,this%e(idR)&
-            &%nEqn,N,1,this%lambdamax)
+            &%nEqn,N,1,this%e(j)%lambdamax)
        this%e(idR)%FstarL = -F
        this%e(idL)%FstarR = F
     ENDDO
@@ -140,7 +140,7 @@ CONTAINS
        idL=this%py(j)%eLeft
        idR=this%py(j)%eRight
        CALL RiemannSolver(this%e(idL)%QRy,this%e(idR)%QLy,G,this%e(idR)&
-            &%nEqn,N,2,this%lambdamax)
+            &%nEqn,N,2,this%e(j)%lambdamax)
        this%e(idR)%GstarL = -G
        this%e(idL)%GstarR = G
     ENDDO
@@ -150,11 +150,10 @@ CONTAINS
        idL=this%pz(j)%eLeft
        idR=this%pz(j)%eRight
        CALL RiemannSolver(this%e(idL)%QRz,this%e(idR)%QLz,H,this%e(idR)&
-            &%nEqn,N,3,this%lambdamax)
+            &%nEqn,N,3,this%e(j)%lambdamax)
        this%e(idR)%HstarL = -H
        this%e(idL)%HstarR = H
     ENDDO
-
     !Compute local time derivative on each element
     DO j=1,this%K
        CALL LocalTimeDerivative(this%e(j),this%DG)
@@ -169,7 +168,7 @@ CONTAINS
     INTEGER                    :: i
     
     DO i=1,this%K
-       CALL DestructDGElement(this%e(i))
+       CALL DestructElement(this%e(i))
     ENDDO
     CALL DestructNodalDGStorage(this%DG)
     DEALLOCATE(this%e,this%px,this%py,this%pz)
