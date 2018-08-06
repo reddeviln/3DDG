@@ -97,7 +97,7 @@ contains
       lstrichnmin1=lstrich
     END DO
     k=n+1
-    ln1=(2*REAL(k,rp)-1)/REAL(k,rp)*x*lnmin1-(REAL(k,rp)-1)/REAL(k,rp)*lnmin2
+    ln1=(2*REAL(k,rp)-1)/REAL(k,rp)*x*l-(REAL(k,rp)-1)/REAL(k,rp)*lnmin2
     lstrich1=lstrichnmin2+(2*REAL(k,rp)-1)*lnmin1
     q=ln1-lnmin2
     qstrich=lstrich1-lstrichnmin2
@@ -152,13 +152,13 @@ contains
     REAL(KIND=RP)                           :: pro
 
     !
-    DO i=0,n
+    DO j=0,n
       pro = 1.0_RP
-      DO j=0,n
+      DO i=0,n
         IF (i==j) CYCLE
-        pro=pro*(x(i)-x(j))
+        pro=pro*(x(j)-x(i))
       END DO
-      baryzweight(i)=1/pro
+      baryzweight(j)=1/pro
 
     END DO
 

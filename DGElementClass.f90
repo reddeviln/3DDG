@@ -9,7 +9,7 @@ MODULE DGElementClass
      INTEGER                                      :: nEqn
      REAL(KIND=RP),ALLOCATABLE,DIMENSION(:,:,:)   :: FstarR,FstarL&
           &,GstarR,GstarL,HstarR,HstarL,QLx,QRx,QLy,QRy,QRz,QLz
-     REAL(KIND=RP),ALLOCATABLE,DIMENSION(:,:,:,:) :: Q,Q_dot
+     REAL(KIND=RP),ALLOCATABLE,DIMENSION(:,:,:,:) :: Q,Q_dot,res
   END TYPE DGElement
 
   !
@@ -28,6 +28,7 @@ CONTAINS
          &,this%QLx(0:n,0:n,nEqn),this%QLy(0:n,0:n,nEqn),this&
          &%QLz(0:n,0:n,nEqn),this%QRx(0:n,0:n,nEqn),this%QRy(0:n,0:n&
          &,nEqn),this%QRz(0:n,0:n,nEqn))
+    ALLOCATE(this%res(0:N,0:N,0:N,nEqn))
     this%nEqn       = nEqn
     this%xL         = xL
     this%xR         = xR
@@ -55,10 +56,11 @@ CONTAINS
   
 !////////////////////////////////////////////////////////////////////
 
-  SUBROUTINE LocalTimeDerivative(this,DG)
+  SUBROUTINE LocalTimeDerivative(this,DG,t)
     IMPLICIT NONE
     TYPE(DGElement)      ,INTENT(INOUT)  :: this
     TYPE(NodalDGStorage) ,INTENT(IN)     :: DG
+    REAL(KIND=RP)        ,INTENT(IN)     :: t
     
     ! Local Variables
 
@@ -69,16 +71,16 @@ CONTAINS
     nEqn = this%nEqn
     N    = DG%N
     
-    this%Q=this%Q_dot
     CALL SystemDGDerivative(this,this%FstarR,this%FstarL,this%GstarR,this&
          &%GstarL,this%HstarR,this%HstarL,F_prime,G_prime&
          &,H_prime,DG%D,DG%weights,DG%l_at_one,DG%l_at_minus_one,this%Q&
          &,nEqn,N)
-    this%Q_dot=(-8.0_RP/this%delta_x**3)*(F_prime+G_prime+H_prime)
-    
+    this%Q_dot=(-8.0_RP/this%delta_x**3)*(F_prime+G_prime+H_prime)+this%res
+       
   END SUBROUTINE LocalTimeDerivative
   
-!////////////////////////
+  !////////////////////////
+
 
   SUBROUTINE SystemDGDerivative(this,FR,FL,GR,GL,HR,HL,Fprime,Gprime&
        &,Hprime,D,weights,l_one,l_minus_one,Q,nEqn,N)
@@ -100,7 +102,6 @@ CONTAINS
     Fprime = 0.0_RP
     Gprime = 0.0_RP
     Hprime = 0.0_RP
-
     !compute volume Terms
     CALL computeVolumePI(D,Q,1,Fprime,N,nEqn)
     CALL computeVolumePI(D,Q,2,Gprime,N,nEqn)
@@ -145,7 +146,7 @@ CONTAINS
     this%delta_x    = 0.0_RP
     DEALLOCATE(this%FstarR,this%FstarL,this%GstarR,this%GstarL,this&
          &%HstarR,this%HstarL,this%Q,this%Q_dot,this%QLx,this%QRx&
-         &,this%QLy,this%QRy,this%QRz,this%QLz)
+         &,this%QLy,this%QRy,this%QRz,this%QLz,this%res)
 
   END SUBROUTINE DestructElement
   

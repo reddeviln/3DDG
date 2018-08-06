@@ -34,11 +34,12 @@ CONTAINS
           DO j=0,N
              DO i=0,N
                 CALL computeEulerPI(Q(i,j,k,:),Q(:,j,k,:),N,nEqn&
-                     &,dir,Fsharp)
-                
+                     &,dir,Fsharp)                
                 DO l=1,nEqn
                    Foutc(l,i,j,k)=2.0_RP*dot_product(D(i,:),Fsharp(:,l))
+                   
                 END DO
+                
              END DO
           END DO   
        END DO
@@ -71,6 +72,7 @@ CONTAINS
     CASE DEFAULT
        print*,"specify 1,2 or 3 for flux direction"
     END SELECT
+    
     DO i=1,nEqn
        Fout(:,:,:,i)=Foutc(i,:,:,:)
     END DO

@@ -63,8 +63,8 @@ CONTAINS
     ENDDO
     DO j=1,nq**2
         l=j*nq
-        this%px(l)%eLeft = i
-        this%px(l)%eRight= i-nq+1
+        this%px(l)%eLeft = l
+        this%px(l)%eRight= l-nq+1
     ENDDO
     !y-neighbors
     DO j= 1,nq
@@ -118,12 +118,12 @@ CONTAINS
     !Solve Riemann problem to get numerical flux at the interface
     !Set boundary data
     DO i=1,this%K
-       this%e(i)%QLx=this%e(i)%Q_dot(0,:,:,:)
-       this%e(i)%QRx=this%e(i)%Q_dot(N,:,:,:)
-       this%e(i)%QLy=this%e(i)%Q_dot(:,0,:,:)
-       this%e(i)%QRy=this%e(i)%Q_dot(:,N,:,:)
-       this%e(i)%QLz=this%e(i)%Q_dot(:,:,0,:)
-       this%e(i)%QRz=this%e(i)%Q_dot(:,:,N,:)
+       this%e(i)%QLx=this%e(i)%Q(0,:,:,:)
+       this%e(i)%QRx=this%e(i)%Q(N,:,:,:)
+       this%e(i)%QLy=this%e(i)%Q(:,0,:,:)
+       this%e(i)%QRy=this%e(i)%Q(:,N,:,:)
+       this%e(i)%QLz=this%e(i)%Q(:,:,0,:)
+       this%e(i)%QRz=this%e(i)%Q(:,:,N,:)
     END DO
        !x-direction
     DO j=1,this%K
@@ -156,7 +156,7 @@ CONTAINS
     ENDDO
     !Compute local time derivative on each element
     DO j=1,this%K
-       CALL LocalTimeDerivative(this%e(j),this%DG)
+       CALL LocalTimeDerivative(this%e(j),this%DG,t)
     ENDDO
     
   END SUBROUTINE GlobalTimeDerivative

@@ -37,7 +37,7 @@ CONTAINS
        this%l_at_minus_one(i)=lagrangevalue(x,i,N,-1.0_RP)
        this%l_at_one(i)=lagrangevalue(x,i,N,1.0_RP)
     end do
-    this%D=baryzdiffmatrix(x,this%weights,N)
+    this%D=baryzdiffmatrix(x,BaryWeights,N)
     do j= 0,N
        do i= 0,N
           this%D_hat(i,j)= -this%D(j,i)*(this%weights(j)/this%weights(i))
