@@ -125,12 +125,13 @@ CONTAINS
        this%e(i)%QLz=this%e(i)%Q(:,:,0,:)
        this%e(i)%QRz=this%e(i)%Q(:,:,N,:)
     END DO
+    CALL getLambdaMaxLocally(this)
        !x-direction
     DO j=1,this%K
        idL=this%px(j)%eLeft
        idR=this%px(j)%eRight
        CALL RiemannSolver(this%e(idL)%QRx,this%e(idR)%QLx,F,this%e(idR)&
-            &%nEqn,N,1,this%e(j)%lambdamax)
+            &%nEqn,N,1,max(this%e(idL)%lambdamax(1),this%e(idR)%lambdamax(2))
        this%e(idR)%FstarL = -F
        this%e(idL)%FstarR = F
     ENDDO
@@ -162,6 +163,91 @@ CONTAINS
   END SUBROUTINE GlobalTimeDerivative
      
   !//////////////////////////////////////
+
+  SUBROUTINE getLambdaMaxLocally(this)
+    IMPLICIT NONE
+    TYPE(DGMesh) :: this
+
+    !local variables
+
+    REAL(KIND=RP),DIMENSION(this%K,0:this%dg%n,0:this%dg%n) :: pxl&
+         &,pxr,pyl,pyr,pzl,pzr,cxl,cxr,cyl,cyr,czl,czr
+    DO i=1,this%K
+       pxl(i,:,:)=(gamma-1.0_RP)*(this%e(i)%QxL(:,:,5)-0.5_RP&
+            &*(this%e(i)%Qxl(:,:,2)**2+this%e(i)%Qxl(:,:,3)**2&
+            &+this%e(i)%Qxl(:,:,4)**2)/this%e(i)%Qxl(:,:,1))
+       pxr(i,:,:)=(gamma-1.0_RP)*(this%e(i)%Qxr(:,:,5)-0.5_RP&
+            &*(this%e(i)%Qxr(:,:,2)**2+this%e(i)%Qxr(:,:,3)**2&
+            &+this%e(i)%Qxr(:,:,4)**2)/this%e(i)%Qxr(:,:,1))
+       pyl(i,:,:)=(gamma-1.0_RP)*(this%e(i)%Qyl(:,:,5)-0.5_RP&
+            &*(this%e(i)%Qyl(:,:,2)**2+this%e(i)%Qyl(:,:,3)**2&
+            &+this%e(i)%Qyl(:,:,4)**2)/this%e(i)%Qyl(:,:,1))
+       pyr(i,:,:)=(gamma-1.0_RP)*(this%e(i)%Qyr(:,:,5)-0.5_RP&
+            &*(this%e(i)%Qyr(:,:,2)**2+this%e(i)%Qyr(:,:,3)**2&
+            &+this%e(i)%Qyr(:,:,4)**2)/this%e(i)%Qyr(:,:,1))
+       pzl(i,:,:)=(gamma-1.0_RP)*(this%e(i)%Qzl(:,:,5)-0.5_RP&
+            &*(this%e(i)%Qzl(:,:,2)**2+this%e(i)%Qzl(:,:,3)**2&
+            &+this%e(i)%Qzl(:,:,4)**2)/this%e(i)%Qzl(:,:,1))
+       pzr(i,:,:)=(gamma-1.0_RP)*(this%e(i)%Qzr(:,:,5)-0.5_RP&
+            &*(this%e(i)%Qzr(:,:,2)**2+this%e(i)%Qzr(:,:,3)**2&
+            &+this%e(i)%Qzr(:,:,4)**2)/this%e(i)%Qzr(:,:,1))
+    END DO
+    DO i=1,this%K
+       cxl(i,:,:)=sqrt(gamma*pxl(i,:,:)/this%e(i)%Qxl(:,:,1))
+       cxr(i,:,:)=sqrt(gamma*pxr(i,:,:)/this%e(i)%Qxr(:,:,1))
+       cyl(i,:,:)=sqrt(gamma*pyl(i,:,:)/this%e(i)%Qyl(:,:,1))
+       cyr(i,:,:)=sqrt(gamma*pyr(i,:,:)/this%e(i)%Qyr(:,:,1))
+       czl(i,:,:)=sqrt(gamma*pzl(i,:,:)/this%e(i)%Qzl(:,:,1))
+       czr(i,:,:)=sqrt(gamma*pzr(i,:,:)/this%e(i)%Qzr(:,:,1))
+    END DO
+    DO i=1,this%K
+       this%e(i)%lambdamax(1)=max(maxval(abs(this%e(i)%Qxl(:,:,2)/this&
+            &%e(i)%Qxl(:,:,1)+cxl(i,:,:))),maxval(abs(this%e(i)%Qxl(:,:&
+            &,3)/this%e(i)%Qxl(:,:,1)+cxl(i,:,:))),maxval(abs(this%e(i)&
+            &%Qxl(:,:,4)/this%e(i)%Qxl(:,:,1)+cxl(i,:,:))),maxval(abs(this%e(i)%Qxl(:,:,2)/this&
+            &%e(i)%Qxl(:,:,1)-cxl(i,:,:))),maxval(abs(this%e(i)%Qxl(:,:&
+            &,3)/this%e(i)%Qxl(:,:,1)-cxl(i,:,:))),maxval(abs(this%e(i)&
+            &%Qxl(:,:,4)/this%e(i)%Qxl(:,:,1)-cxl(i,:,:))))
+       this%e(i)%lambdamax(2)=max(maxval(abs(this%e(i)%Qxr(:,:,2)/this&
+            &%e(i)%Qxr(:,:,1)+cxr(i,:,:))),maxval(abs(this%e(i)%Qxr(:,:&
+            &,3)/this%e(i)%Qxr(:,:,1)+cxr(i,:,:))),maxval(abs(this%e(i)&
+            &%Qxr(:,:,4)/this%e(i)%Qxr(:,:,1)+cxr(i,:,:))),maxval(abs(this%e(i)%Qxr(:,:,2)/this&
+            &%e(i)%Qxr(:,:,1)-cxr(i,:,:))),maxval(abs(this%e(i)%Qxr(:,:&
+            &,3)/this%e(i)%Qxr(:,:,1)-cxr(i,:,:))),maxval(abs(this%e(i)&
+            &%Qxr(:,:,4)/this%e(i)%Qxr(:,:,1)-cxr(i,:,:))))
+       this%e(i)%lambdamax(3)=max(maxval(abs(this%e(i)%Qyl(:,:,2)/this&
+            &%e(i)%Qyl(:,:,1)+cyl(i,:,:))),maxval(abs(this%e(i)%Qyl(:,:&
+            &,3)/this%e(i)%Qyl(:,:,1)+cyl(i,:,:))),maxval(abs(this%e(i)&
+            &%Qyl(:,:,4)/this%e(i)%Qyl(:,:,1)+cyl(i,:,:))),maxval(abs(this%e(i)%Qyl(:,:,2)/this&
+            &%e(i)%Qyl(:,:,1)-cyl(i,:,:))),maxval(abs(this%e(i)%Qyl(:,:&
+            &,3)/this%e(i)%Qyl(:,:,1)-cyl(i,:,:))),maxval(abs(this%e(i)&
+            &%Qyl(:,:,4)/this%e(i)%Qyl(:,:,1)-cyl(i,:,:))))
+       this%e(i)%lambdamax(4)=max(maxval(abs(this%e(i)%Qyr(:,:,2)/this&
+            &%e(i)%Qyr(:,:,1)+cyr(i,:,:))),maxval(abs(this%e(i)%Qyr(:,:&
+            &,3)/this%e(i)%Qyr(:,:,1)+cyr(i,:,:))),maxval(abs(this%e(i)&
+            &%Qyr(:,:,4)/this%e(i)%Qyr(:,:,1)+cyr(i,:,:))),maxval(abs(this%e(i)%Qyr(:,:,2)/this&
+            &%e(i)%Qyr(:,:,1)-cyr(i,:,:))),maxval(abs(this%e(i)%Qyr(:,:&
+            &,3)/this%e(i)%Qyr(:,:,1)-cyr(i,:,:))),maxval(abs(this%e(i)&
+            &%Qyr(:,:,4)/this%e(i)%Qyr(:,:,1)-cyr(i,:,:))))
+       this%e(i)%lambdamax(5)=max(maxval(abs(this%e(i)%Qzl(:,:,2)/this&
+            &%e(i)%Qzl(:,:,1)+czl(i,:,:))),maxval(abs(this%e(i)%Qzl(:,:&
+            &,3)/this%e(i)%Qzl(:,:,1)+czl(i,:,:))),maxval(abs(this%e(i)&
+            &%Qzl(:,:,4)/this%e(i)%Qzl(:,:,1)+czl(i,:,:))),maxval(abs(this%e(i)%Qzl(:,:,2)/this&
+            &%e(i)%Qzl(:,:,1)-czl(i,:,:))),maxval(abs(this%e(i)%Qzl(:,:&
+            &,3)/this%e(i)%Qzl(:,:,1)-czl(i,:,:))),maxval(abs(this%e(i)&
+            &%Qzl(:,:,4)/this%e(i)%Qzl(:,:,1)-czl(i,:,:))))
+       this%e(i)%lambdamax(6)=max(maxval(abs(this%e(i)%Qzr(:,:,2)/this&
+            &%e(i)%Qzr(:,:,1)+czr(i,:,:))),maxval(abs(this%e(i)%Qzr(:,:&
+            &,3)/this%e(i)%Qzr(:,:,1)+czr(i,:,:))),maxval(abs(this%e(i)&
+            &%Qzr(:,:,4)/this%e(i)%Qzr(:,:,1)+czr(i,:,:))),maxval(abs(this%e(i)%Qzr(:,:,2)/this&
+            &%e(i)%Qzr(:,:,1)-czr(i,:,:))),maxval(abs(this%e(i)%Qzr(:,:&
+            &,3)/this%e(i)%Qzr(:,:,1)-czr(i,:,:))),maxval(abs(this%e(i)&
+            &%Qzr(:,:,4)/this%e(i)%Qzr(:,:,1)-czr(i,:,:))))
+    END DO
+  END SUBROUTINE getLambdaMaxLocally
+  
+  
+  !///////////////////////////////////////
   
   SUBROUTINE DestructDGMesh(this)
     TYPE(DGMesh),INTENT(INOUT) :: this

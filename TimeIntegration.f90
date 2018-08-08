@@ -126,9 +126,9 @@ CONTAINS
             &%e(i)%Q(:,:,:,1)-c(i,:,:,:))),maxval(abs(this%e(i)%Q(:,:,:&
             &,3)/this%e(i)%Q(:,:,:,1)-c(i,:,:,:))),maxval(abs(this%e(i)&
             &%Q(:,:,:,4)/this%e(i)%Q(:,:,:,1)-c(i,:,:,:))))
-       this%e(i)%lambdamax=maxatElement(i)
     END DO
     this%lambdamax=maxval(maxatElement)
+    
   END SUBROUTINE getLambdaMaxglobally
 
   !///////////////////////////////////////////////////////

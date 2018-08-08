@@ -5,7 +5,8 @@ MODULE DGElementClass
   IMPLICIT NONE
 
   TYPE DGElement
-     REAL(KIND=RP)                                :: delta_x,xL,xR,yL,yR,zL,zR,lambdamax
+     REAL(KIND=RP)                                :: delta_x,xL,xR,yL,yR,zL,zR
+     REAL(KIND=RP),DIMENSION(6)                   :: lambdamax
      INTEGER                                      :: nEqn
      REAL(KIND=RP),ALLOCATABLE,DIMENSION(:,:,:)   :: FstarR,FstarL&
           &,GstarR,GstarL,HstarR,HstarL,QLx,QRx,QLy,QRy,QRz,QLz
