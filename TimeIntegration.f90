@@ -138,7 +138,7 @@ CONTAINS
     TYPE(DGMesh) :: this
     REAL(KIND=RP)   :: t
     !local variables
-    REAL(KIND=RP) :: c1,c2,c3,c4,c5
+    REAL(KIND=RP) :: c1,c2,c3,c4,c5,ro,rox,px,p
     INTEGER :: i,j,l,m
     c1=pi/10.0_RP
     c2=-0.2_RP*pi+0.05_RP*pi*(1.0_RP+5.0_RP*gamma)
@@ -149,18 +149,29 @@ CONTAINS
        DO m=0,this%dg%n
           DO j=0,this%dg%n
              DO l=0,this%dg%n
-                this%e(i)%res(l,j,m,1)=c1*cos(pi*(points(i,l,j,m,1)&
-                     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
-                this%e(i)%res(l,j,m,2)=c2*cos(pi*(points(i,l,j,m,1)&
-                     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))&
-                     &+c3*cos(2.0_RP*pi*(points(i,l,j,m,1)&
-                     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
+                !this%e(i)%res(l,j,m,1)=c1*cos(pi*(points(i,l,j,m,1)&
+                !     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
+                !this%e(i)%res(l,j,m,2)=c2*cos(pi*(points(i,l,j,m,1)&
+                !     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))&
+                 !    &+c3*cos(2.0_RP*pi*(points(i,l,j,m,1)&
+                !     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
+                !this%e(i)%res(l,j,m,3)=this%e(i)%res(l,j,m,2)
+                !this%e(i)%res(l,j,m,4)=this%e(i)%res(l,j,m,2)
+                !this%e(i)%res(l,j,m,5)=c4*cos(pi*(points(i,l,j,m,1)&
+                !     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))&
+                !     &+c5*cos(2.0_RP*pi*(points(i,l,j,m,1)&
+                !     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
+                ro=2.0_RP+0.1_RP*sin(pi*(points(i,l,j,m,1)+points(i,l&
+                     &,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
+                rox=cos(pi*(points(i,l,j,m,1)+points(i,l,j,m,2)&
+                     &+points(i,l,j,m,3)-2.0_RP*t))*pi*0.1_RP
+                px=(gamma-1.0_RP)*((2.0_RP*ro-1.5_RP)*rox)
+                p= (gamma-1.0_RP)*(ro**2-1.5_RP*ro)
+                this%e(i)%res(l,j,m,1)=rox
+                this%e(i)%res(l,j,m,2)=px+rox
                 this%e(i)%res(l,j,m,3)=this%e(i)%res(l,j,m,2)
                 this%e(i)%res(l,j,m,4)=this%e(i)%res(l,j,m,2)
-                this%e(i)%res(l,j,m,5)=c4*cos(pi*(points(i,l,j,m,1)&
-                     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))&
-                     &+c5*cos(2.0_RP*pi*(points(i,l,j,m,1)&
-                     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
+                this%e(i)%res(l,j,m,5)=2.0_RP*ro*rox+3.0_RP*px
              END DO
           END DO
        END DO

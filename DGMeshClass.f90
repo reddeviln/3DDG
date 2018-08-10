@@ -131,7 +131,7 @@ CONTAINS
        idL=this%px(j)%eLeft
        idR=this%px(j)%eRight
        CALL RiemannSolver(this%e(idL)%QRx,this%e(idR)%QLx,F,this%e(idR)&
-            &%nEqn,N,1,max(this%e(idL)%lambdamax(1),this%e(idR)%lambdamax(2))
+            &%nEqn,N,1,max(this%e(idL)%lambdamax(2),this%e(idR)%lambdamax(1)))
        this%e(idR)%FstarL = -F
        this%e(idL)%FstarR = F
     ENDDO
@@ -141,7 +141,7 @@ CONTAINS
        idL=this%py(j)%eLeft
        idR=this%py(j)%eRight
        CALL RiemannSolver(this%e(idL)%QRy,this%e(idR)%QLy,G,this%e(idR)&
-            &%nEqn,N,2,this%e(j)%lambdamax)
+            &%nEqn,N,2,max(this%e(idL)%lambdamax(4),this%e(idR)%lambdamax(3)))
        this%e(idR)%GstarL = -G
        this%e(idL)%GstarR = G
     ENDDO
@@ -151,7 +151,7 @@ CONTAINS
        idL=this%pz(j)%eLeft
        idR=this%pz(j)%eRight
        CALL RiemannSolver(this%e(idL)%QRz,this%e(idR)%QLz,H,this%e(idR)&
-            &%nEqn,N,3,this%e(j)%lambdamax)
+            &%nEqn,N,3,max(this%e(idL)%lambdamax(6),this%e(idR)%lambdamax(5)))
        this%e(idR)%HstarL = -H
        this%e(idL)%HstarR = H
     ENDDO
@@ -166,83 +166,85 @@ CONTAINS
 
   SUBROUTINE getLambdaMaxLocally(this)
     IMPLICIT NONE
-    TYPE(DGMesh) :: this
+    TYPE(DGMesh),INTENT(INOUT) :: this
 
     !local variables
 
-    REAL(KIND=RP),DIMENSION(this%K,0:this%dg%n,0:this%dg%n) :: pxl&
-         &,pxr,pyl,pyr,pzl,pzr,cxl,cxr,cyl,cyr,czl,czr
+    REAL(KIND=RP),DIMENSION(this%K,0:this%dg%n,0:this%dg%n) :: pLx&
+         &,pRx,pLy,pRy,pLz,pRz,cLx,cRx,cLy,cRy,cLz,cRz
+    INTEGER :: i
+    
     DO i=1,this%K
-       pxl(i,:,:)=(gamma-1.0_RP)*(this%e(i)%QxL(:,:,5)-0.5_RP&
-            &*(this%e(i)%Qxl(:,:,2)**2+this%e(i)%Qxl(:,:,3)**2&
-            &+this%e(i)%Qxl(:,:,4)**2)/this%e(i)%Qxl(:,:,1))
-       pxr(i,:,:)=(gamma-1.0_RP)*(this%e(i)%Qxr(:,:,5)-0.5_RP&
-            &*(this%e(i)%Qxr(:,:,2)**2+this%e(i)%Qxr(:,:,3)**2&
-            &+this%e(i)%Qxr(:,:,4)**2)/this%e(i)%Qxr(:,:,1))
-       pyl(i,:,:)=(gamma-1.0_RP)*(this%e(i)%Qyl(:,:,5)-0.5_RP&
-            &*(this%e(i)%Qyl(:,:,2)**2+this%e(i)%Qyl(:,:,3)**2&
-            &+this%e(i)%Qyl(:,:,4)**2)/this%e(i)%Qyl(:,:,1))
-       pyr(i,:,:)=(gamma-1.0_RP)*(this%e(i)%Qyr(:,:,5)-0.5_RP&
-            &*(this%e(i)%Qyr(:,:,2)**2+this%e(i)%Qyr(:,:,3)**2&
-            &+this%e(i)%Qyr(:,:,4)**2)/this%e(i)%Qyr(:,:,1))
-       pzl(i,:,:)=(gamma-1.0_RP)*(this%e(i)%Qzl(:,:,5)-0.5_RP&
-            &*(this%e(i)%Qzl(:,:,2)**2+this%e(i)%Qzl(:,:,3)**2&
-            &+this%e(i)%Qzl(:,:,4)**2)/this%e(i)%Qzl(:,:,1))
-       pzr(i,:,:)=(gamma-1.0_RP)*(this%e(i)%Qzr(:,:,5)-0.5_RP&
-            &*(this%e(i)%Qzr(:,:,2)**2+this%e(i)%Qzr(:,:,3)**2&
-            &+this%e(i)%Qzr(:,:,4)**2)/this%e(i)%Qzr(:,:,1))
+       pLx(i,:,:)=(gamma-1.0_RP)*(this%e(i)%QLx(:,:,5)-0.5_RP&
+            &*(this%e(i)%QLx(:,:,2)**2+this%e(i)%QLx(:,:,3)**2&
+            &+this%e(i)%QLx(:,:,4)**2)/this%e(i)%QLx(:,:,1))
+       pRx(i,:,:)=(gamma-1.0_RP)*(this%e(i)%QRx(:,:,5)-0.5_RP&
+            &*(this%e(i)%QRx(:,:,2)**2+this%e(i)%QRx(:,:,3)**2&
+            &+this%e(i)%QRx(:,:,4)**2)/this%e(i)%QRx(:,:,1))
+       pLy(i,:,:)=(gamma-1.0_RP)*(this%e(i)%QLy(:,:,5)-0.5_RP&
+            &*(this%e(i)%QLy(:,:,2)**2+this%e(i)%QLy(:,:,3)**2&
+            &+this%e(i)%QLy(:,:,4)**2)/this%e(i)%QLy(:,:,1))
+       pRy(i,:,:)=(gamma-1.0_RP)*(this%e(i)%QRy(:,:,5)-0.5_RP&
+            &*(this%e(i)%QRy(:,:,2)**2+this%e(i)%QRy(:,:,3)**2&
+            &+this%e(i)%QRy(:,:,4)**2)/this%e(i)%QRy(:,:,1))
+       pLz(i,:,:)=(gamma-1.0_RP)*(this%e(i)%QLz(:,:,5)-0.5_RP&
+            &*(this%e(i)%QLz(:,:,2)**2+this%e(i)%QLz(:,:,3)**2&
+            &+this%e(i)%QLz(:,:,4)**2)/this%e(i)%QLz(:,:,1))
+       pRz(i,:,:)=(gamma-1.0_RP)*(this%e(i)%QRz(:,:,5)-0.5_RP&
+            &*(this%e(i)%QRz(:,:,2)**2+this%e(i)%QRz(:,:,3)**2&
+            &+this%e(i)%QRz(:,:,4)**2)/this%e(i)%QRz(:,:,1))
     END DO
     DO i=1,this%K
-       cxl(i,:,:)=sqrt(gamma*pxl(i,:,:)/this%e(i)%Qxl(:,:,1))
-       cxr(i,:,:)=sqrt(gamma*pxr(i,:,:)/this%e(i)%Qxr(:,:,1))
-       cyl(i,:,:)=sqrt(gamma*pyl(i,:,:)/this%e(i)%Qyl(:,:,1))
-       cyr(i,:,:)=sqrt(gamma*pyr(i,:,:)/this%e(i)%Qyr(:,:,1))
-       czl(i,:,:)=sqrt(gamma*pzl(i,:,:)/this%e(i)%Qzl(:,:,1))
-       czr(i,:,:)=sqrt(gamma*pzr(i,:,:)/this%e(i)%Qzr(:,:,1))
+       cLx(i,:,:)=sqrt(gamma*pLx(i,:,:)/this%e(i)%QLx(:,:,1))
+       cRx(i,:,:)=sqrt(gamma*pRx(i,:,:)/this%e(i)%QRx(:,:,1))
+       cLy(i,:,:)=sqrt(gamma*pLy(i,:,:)/this%e(i)%QLy(:,:,1))
+       cRy(i,:,:)=sqrt(gamma*pRy(i,:,:)/this%e(i)%QRy(:,:,1))
+       cLz(i,:,:)=sqrt(gamma*pLz(i,:,:)/this%e(i)%QLz(:,:,1))
+       cRz(i,:,:)=sqrt(gamma*pRz(i,:,:)/this%e(i)%QRz(:,:,1))
     END DO
     DO i=1,this%K
-       this%e(i)%lambdamax(1)=max(maxval(abs(this%e(i)%Qxl(:,:,2)/this&
-            &%e(i)%Qxl(:,:,1)+cxl(i,:,:))),maxval(abs(this%e(i)%Qxl(:,:&
-            &,3)/this%e(i)%Qxl(:,:,1)+cxl(i,:,:))),maxval(abs(this%e(i)&
-            &%Qxl(:,:,4)/this%e(i)%Qxl(:,:,1)+cxl(i,:,:))),maxval(abs(this%e(i)%Qxl(:,:,2)/this&
-            &%e(i)%Qxl(:,:,1)-cxl(i,:,:))),maxval(abs(this%e(i)%Qxl(:,:&
-            &,3)/this%e(i)%Qxl(:,:,1)-cxl(i,:,:))),maxval(abs(this%e(i)&
-            &%Qxl(:,:,4)/this%e(i)%Qxl(:,:,1)-cxl(i,:,:))))
-       this%e(i)%lambdamax(2)=max(maxval(abs(this%e(i)%Qxr(:,:,2)/this&
-            &%e(i)%Qxr(:,:,1)+cxr(i,:,:))),maxval(abs(this%e(i)%Qxr(:,:&
-            &,3)/this%e(i)%Qxr(:,:,1)+cxr(i,:,:))),maxval(abs(this%e(i)&
-            &%Qxr(:,:,4)/this%e(i)%Qxr(:,:,1)+cxr(i,:,:))),maxval(abs(this%e(i)%Qxr(:,:,2)/this&
-            &%e(i)%Qxr(:,:,1)-cxr(i,:,:))),maxval(abs(this%e(i)%Qxr(:,:&
-            &,3)/this%e(i)%Qxr(:,:,1)-cxr(i,:,:))),maxval(abs(this%e(i)&
-            &%Qxr(:,:,4)/this%e(i)%Qxr(:,:,1)-cxr(i,:,:))))
-       this%e(i)%lambdamax(3)=max(maxval(abs(this%e(i)%Qyl(:,:,2)/this&
-            &%e(i)%Qyl(:,:,1)+cyl(i,:,:))),maxval(abs(this%e(i)%Qyl(:,:&
-            &,3)/this%e(i)%Qyl(:,:,1)+cyl(i,:,:))),maxval(abs(this%e(i)&
-            &%Qyl(:,:,4)/this%e(i)%Qyl(:,:,1)+cyl(i,:,:))),maxval(abs(this%e(i)%Qyl(:,:,2)/this&
-            &%e(i)%Qyl(:,:,1)-cyl(i,:,:))),maxval(abs(this%e(i)%Qyl(:,:&
-            &,3)/this%e(i)%Qyl(:,:,1)-cyl(i,:,:))),maxval(abs(this%e(i)&
-            &%Qyl(:,:,4)/this%e(i)%Qyl(:,:,1)-cyl(i,:,:))))
-       this%e(i)%lambdamax(4)=max(maxval(abs(this%e(i)%Qyr(:,:,2)/this&
-            &%e(i)%Qyr(:,:,1)+cyr(i,:,:))),maxval(abs(this%e(i)%Qyr(:,:&
-            &,3)/this%e(i)%Qyr(:,:,1)+cyr(i,:,:))),maxval(abs(this%e(i)&
-            &%Qyr(:,:,4)/this%e(i)%Qyr(:,:,1)+cyr(i,:,:))),maxval(abs(this%e(i)%Qyr(:,:,2)/this&
-            &%e(i)%Qyr(:,:,1)-cyr(i,:,:))),maxval(abs(this%e(i)%Qyr(:,:&
-            &,3)/this%e(i)%Qyr(:,:,1)-cyr(i,:,:))),maxval(abs(this%e(i)&
-            &%Qyr(:,:,4)/this%e(i)%Qyr(:,:,1)-cyr(i,:,:))))
-       this%e(i)%lambdamax(5)=max(maxval(abs(this%e(i)%Qzl(:,:,2)/this&
-            &%e(i)%Qzl(:,:,1)+czl(i,:,:))),maxval(abs(this%e(i)%Qzl(:,:&
-            &,3)/this%e(i)%Qzl(:,:,1)+czl(i,:,:))),maxval(abs(this%e(i)&
-            &%Qzl(:,:,4)/this%e(i)%Qzl(:,:,1)+czl(i,:,:))),maxval(abs(this%e(i)%Qzl(:,:,2)/this&
-            &%e(i)%Qzl(:,:,1)-czl(i,:,:))),maxval(abs(this%e(i)%Qzl(:,:&
-            &,3)/this%e(i)%Qzl(:,:,1)-czl(i,:,:))),maxval(abs(this%e(i)&
-            &%Qzl(:,:,4)/this%e(i)%Qzl(:,:,1)-czl(i,:,:))))
-       this%e(i)%lambdamax(6)=max(maxval(abs(this%e(i)%Qzr(:,:,2)/this&
-            &%e(i)%Qzr(:,:,1)+czr(i,:,:))),maxval(abs(this%e(i)%Qzr(:,:&
-            &,3)/this%e(i)%Qzr(:,:,1)+czr(i,:,:))),maxval(abs(this%e(i)&
-            &%Qzr(:,:,4)/this%e(i)%Qzr(:,:,1)+czr(i,:,:))),maxval(abs(this%e(i)%Qzr(:,:,2)/this&
-            &%e(i)%Qzr(:,:,1)-czr(i,:,:))),maxval(abs(this%e(i)%Qzr(:,:&
-            &,3)/this%e(i)%Qzr(:,:,1)-czr(i,:,:))),maxval(abs(this%e(i)&
-            &%Qzr(:,:,4)/this%e(i)%Qzr(:,:,1)-czr(i,:,:))))
+       this%e(i)%lambdamax(1)=max(maxval(abs(this%e(i)%QLx(:,:,2)/this&
+            &%e(i)%QLx(:,:,1)+cLx(i,:,:))),maxval(abs(this%e(i)%QLx(:,:&
+            &,3)/this%e(i)%QLx(:,:,1)+cLx(i,:,:))),maxval(abs(this%e(i)&
+            &%QLx(:,:,4)/this%e(i)%QLx(:,:,1)+cLx(i,:,:))),maxval(abs(this%e(i)%QLx(:,:,2)/this&
+            &%e(i)%QLx(:,:,1)-cLx(i,:,:))),maxval(abs(this%e(i)%QLx(:,:&
+            &,3)/this%e(i)%QLx(:,:,1)-cLx(i,:,:))),maxval(abs(this%e(i)&
+            &%QLx(:,:,4)/this%e(i)%QLx(:,:,1)-cLx(i,:,:))))
+       this%e(i)%lambdamax(2)=max(maxval(abs(this%e(i)%QRx(:,:,2)/this&
+            &%e(i)%QRx(:,:,1)+cRx(i,:,:))),maxval(abs(this%e(i)%QRx(:,:&
+            &,3)/this%e(i)%QRx(:,:,1)+cRx(i,:,:))),maxval(abs(this%e(i)&
+            &%QRx(:,:,4)/this%e(i)%QRx(:,:,1)+cRx(i,:,:))),maxval(abs(this%e(i)%QRx(:,:,2)/this&
+            &%e(i)%QRx(:,:,1)-cRx(i,:,:))),maxval(abs(this%e(i)%QRx(:,:&
+            &,3)/this%e(i)%QRx(:,:,1)-cRx(i,:,:))),maxval(abs(this%e(i)&
+            &%QRx(:,:,4)/this%e(i)%QRx(:,:,1)-cRx(i,:,:))))
+       this%e(i)%lambdamax(3)=max(maxval(abs(this%e(i)%QLy(:,:,2)/this&
+            &%e(i)%QLy(:,:,1)+cLy(i,:,:))),maxval(abs(this%e(i)%QLy(:,:&
+            &,3)/this%e(i)%QLy(:,:,1)+cLy(i,:,:))),maxval(abs(this%e(i)&
+            &%QLy(:,:,4)/this%e(i)%QLy(:,:,1)+cLy(i,:,:))),maxval(abs(this%e(i)%QLy(:,:,2)/this&
+            &%e(i)%QLy(:,:,1)-cLy(i,:,:))),maxval(abs(this%e(i)%QLy(:,:&
+            &,3)/this%e(i)%QLy(:,:,1)-cLy(i,:,:))),maxval(abs(this%e(i)&
+            &%QLy(:,:,4)/this%e(i)%QLy(:,:,1)-cLy(i,:,:))))
+       this%e(i)%lambdamax(4)=max(maxval(abs(this%e(i)%QRy(:,:,2)/this&
+            &%e(i)%QRy(:,:,1)+cRy(i,:,:))),maxval(abs(this%e(i)%QRy(:,:&
+            &,3)/this%e(i)%QRy(:,:,1)+cRy(i,:,:))),maxval(abs(this%e(i)&
+            &%QRy(:,:,4)/this%e(i)%QRy(:,:,1)+cRy(i,:,:))),maxval(abs(this%e(i)%QRy(:,:,2)/this&
+            &%e(i)%QRy(:,:,1)-cRy(i,:,:))),maxval(abs(this%e(i)%QRy(:,:&
+            &,3)/this%e(i)%QRy(:,:,1)-cRy(i,:,:))),maxval(abs(this%e(i)&
+            &%QRy(:,:,4)/this%e(i)%QRy(:,:,1)-cRy(i,:,:))))
+       this%e(i)%lambdamax(5)=max(maxval(abs(this%e(i)%QLz(:,:,2)/this&
+            &%e(i)%QLz(:,:,1)+cLz(i,:,:))),maxval(abs(this%e(i)%QLz(:,:&
+            &,3)/this%e(i)%QLz(:,:,1)+cLz(i,:,:))),maxval(abs(this%e(i)&
+            &%QLz(:,:,4)/this%e(i)%QLz(:,:,1)+cLz(i,:,:))),maxval(abs(this%e(i)%QLz(:,:,2)/this&
+            &%e(i)%QLz(:,:,1)-cLz(i,:,:))),maxval(abs(this%e(i)%QLz(:,:&
+            &,3)/this%e(i)%QLz(:,:,1)-cLz(i,:,:))),maxval(abs(this%e(i)&
+            &%QLz(:,:,4)/this%e(i)%QLz(:,:,1)-cLz(i,:,:))))
+       this%e(i)%lambdamax(6)=max(maxval(abs(this%e(i)%QRz(:,:,2)/this&
+            &%e(i)%QRz(:,:,1)+cRz(i,:,:))),maxval(abs(this%e(i)%QRz(:,:&
+            &,3)/this%e(i)%QRz(:,:,1)+cRz(i,:,:))),maxval(abs(this%e(i)&
+            &%QRz(:,:,4)/this%e(i)%QRz(:,:,1)+cRz(i,:,:))),maxval(abs(this%e(i)%QRz(:,:,2)/this&
+            &%e(i)%QRz(:,:,1)-cRz(i,:,:))),maxval(abs(this%e(i)%QRz(:,:&
+            &,3)/this%e(i)%QRz(:,:,1)-cRz(i,:,:))),maxval(abs(this%e(i)&
+            &%QRz(:,:,4)/this%e(i)%QRz(:,:,1)-cRz(i,:,:))))
     END DO
   END SUBROUTINE getLambdaMaxLocally
   
