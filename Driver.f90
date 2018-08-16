@@ -1,7 +1,7 @@
 PROGRAM Driver
   USE TimeIntegration
   IMPLICIT NONE
-  REAL(KIND=RP) :: muVal=0.2_RP,gammaVal=1.4_RP,PrVal=0.7_RP,CFLVal=0.5_RP,t=0.0_RP,tend=0.9_RP
+  REAL(KIND=RP) :: muVal=0.2_RP,gammaVal=1.4_RP,PrVal=0.7_RP,CFLVal=0.5_RP,t=0.0_RP,tend=1.0_RP
   REAL(KIND=RP) :: xmin=-1.0_RP,xmax=1.0_RP,ymin=-1.0_RP,ymax=1.0_RP&
        &,zmin=-1.0_RP,zmax=1.0_RP
   TYPE(DGMesh)  :: Simulation

@@ -153,7 +153,7 @@ CONTAINS
     p1=(gamma-1.0_RP)*(QL(5)-0.5_RP*(QL(2)*QL(2)+QL(3)*QL(3)+QL(4)*QL(4))/QL(1))
     p2=(gamma-1.0_RP)*(QR(5)-0.5_RP*(QR(2)*QR(2)+QR(3)*QR(3)+QR(4)*QR(4))/QR(1))
     h1=(QL(5)+p1)/QL(1)
-    h2=(QL(5)+p2)/QL(1)
+    h2=(QR(5)+p2)/QR(1)
     SELECT CASE(dir)
     CASE(1)
        
