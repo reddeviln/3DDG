@@ -173,7 +173,6 @@ CONTAINS
     REAL(KIND=RP),DIMENSION(this%K,0:this%dg%n,0:this%dg%n) :: pLx&
          &,pRx,pLy,pRy,pLz,pRz,cLx,cRx,cLy,cRy,cLz,cRz
     INTEGER :: i
-    
     DO i=1,this%K
        pLx(i,:,:)=(gamma-1.0_RP)*(this%e(i)%QLx(:,:,5)-0.5_RP&
             &*(this%e(i)%QLx(:,:,2)**2+this%e(i)%QLx(:,:,3)**2&
@@ -194,7 +193,15 @@ CONTAINS
             &*(this%e(i)%QRz(:,:,2)**2+this%e(i)%QRz(:,:,3)**2&
             &+this%e(i)%QRz(:,:,4)**2)/this%e(i)%QRz(:,:,1))
     END DO
+    
     DO i=1,this%K
+       IF(ANY(pLx(i,:,:)<0.OR.this%e(i)%QLx(:,:,1)<0).OR.ANY(pRx(i,:&
+            &,:) <0.OR.this%e(i)%QRx(:,:,1)<0).OR.ANY(pLy(i,:,:)&
+            &<0.OR.this%e(i)%QLy(:,:,1)<0).OR.ANY(pRy(i,:,:)<0.OR.this%e(i)%QRy(:,:&
+            &,1)<0) .OR. ANY(pLz(i,:,:)<0.OR.this%e(i)%QLz(:,:,1)<0) .OR.&
+            & ANY(pRz(i,:,:)<0.OR. this%e(i)%QRz(:,:,1)<0)) THEN
+          print*,"pressure/density negativ in Element",i
+       END IF
        cLx(i,:,:)=sqrt(gamma*pLx(i,:,:)/this%e(i)%QLx(:,:,1))
        cRx(i,:,:)=sqrt(gamma*pRx(i,:,:)/this%e(i)%QRx(:,:,1))
        cLy(i,:,:)=sqrt(gamma*pLy(i,:,:)/this%e(i)%QLy(:,:,1))
@@ -246,6 +253,7 @@ CONTAINS
             &,3)/this%e(i)%QRz(:,:,1)-cRz(i,:,:))),maxval(abs(this%e(i)&
             &%QRz(:,:,4)/this%e(i)%QRz(:,:,1)-cRz(i,:,:))))
     END DO
+    
   END SUBROUTINE getLambdaMaxLocally
   
   

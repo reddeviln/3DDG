@@ -205,7 +205,7 @@ CONTAINS
                &,Fsharp(i,j,:))
        END DO
     END DO
-    
+
     Fout=Fsharp-0.5_RP*lambdamax*(-QR+QL)
   END SUBROUTINE RiemannSolver
 
