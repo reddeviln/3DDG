@@ -8,7 +8,7 @@ PROGRAM Driver
   INTEGER,PARAMETER       :: NQ=3,N=3,nEqn=5
   INTEGER       :: i,m=0,j=0
   CHARACTER(len=3) :: numChar
-  CHARACTER(len=21) :: fname ='Plots/Movies/UXXX.tec'
+  CHARACTER(len=24) :: fname ='../Plots/Movies/UXXX.tec'
   REAL(KIND=RP),DIMENSION(1:nq**3,0:N,0:N,0:N) :: Qplot
   print*,"THIS IS A DGCODE BY NILS DORNBUSCH inspired by 'FORTRAN NOTES'&
        &"," by ANDREW WINTERS"
@@ -29,19 +29,19 @@ PROGRAM Driver
         m=m+1
         WRITE(numChar,'(i3)')m
         IF (m.GE.100) THEN
-           fName(15:17) = numChar
+           fName(18:20) = numChar
         ELSEif(m.GE.10) then
-           fName(15:15)    = "0"
-           fName(16:17)  = numChar(2:3)
+           fName(18:18)    = "0"
+           fName(19:20)  = numChar(2:3)
         ELSE
-           fName(15:16) = "00"
-           fName(17:17)=numChar(3:3)
+           fName(18:19) = "00"
+           fName(20:20)=numChar(3:3)
         END IF
         CALL preparePlot(Simulation,fName,1)
      END IF
      j=j+1
   END DO
-  CALL preparePlot(Simulation,"Plots/endTime.tec",1)
+  CALL preparePlot(Simulation,"../Plots/endTime.tec",1)
   print*,"Done without a problem! See you next time."
 END PROGRAM Driver
 

@@ -201,6 +201,7 @@ CONTAINS
             &,1)<0) .OR. ANY(pLz(i,:,:)<0.OR.this%e(i)%QLz(:,:,1)<0) .OR.&
             & ANY(pRz(i,:,:)<0.OR. this%e(i)%QRz(:,:,1)<0)) THEN
           print*,"pressure/density negativ in Element",i
+          CALL exit(2);
        END IF
        cLx(i,:,:)=sqrt(gamma*pLx(i,:,:)/this%e(i)%QLx(:,:,1))
        cRx(i,:,:)=sqrt(gamma*pRx(i,:,:)/this%e(i)%QRx(:,:,1))

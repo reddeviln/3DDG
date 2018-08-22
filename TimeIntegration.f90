@@ -84,7 +84,7 @@ CONTAINS
        Qplot(i,:,:,:)=this%e(i)%Q(:,:,:,1)
     END DO
     
-    OPEN(file='Plots/initial.tec',unit=15)
+    OPEN(file='../Plots/initial.tec',unit=15)
     CALL ExportToTecplot_3D(points(:,:,:,:,1),points(:,:,:,:,2)&
          &,points(:,:,:,:,3),Qplot,this%DG%N,this%K&
          &,15,"rho")
