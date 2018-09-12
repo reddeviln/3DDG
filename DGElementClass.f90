@@ -117,11 +117,11 @@ CONTAINS
     DO l=0,N
        DO k=0,N
           DO i=1,nEqn
-             Fprime(0,k,l,i)=Fprime(0,k,l,i)+(FL(k,l,i)+FanaL(k,l,i))
+             Fprime(0,k,l,i)=Fprime(0,k,l,i)-(FL(k,l,i)-FanaL(k,l,i))
              Fprime(N,k,l,i)=Fprime(N,k,l,i)+(FR(k,l,i)-FanaR(k,l,i))
-             Gprime(k,0,l,i)=Gprime(k,0,l,i)+(GL(k,l,i)+GanaL(k,l,i))
+             Gprime(k,0,l,i)=Gprime(k,0,l,i)-(GL(k,l,i)-GanaL(k,l,i))
              Gprime(k,N,l,i)=Gprime(k,N,l,i)+(GR(k,l,i)-GanaR(k,l,i))
-             Hprime(k,l,0,i)=Hprime(k,l,0,i)+(HL(k,l,i)+HanaL(k,l,i))
+             Hprime(k,l,0,i)=Hprime(k,l,0,i)-(HL(k,l,i)-HanaL(k,l,i))
              Hprime(k,l,N,i)=Hprime(k,l,N,i)+(HR(k,l,i)-HanaR(k,l,i))
           ENDDO
        ENDDO

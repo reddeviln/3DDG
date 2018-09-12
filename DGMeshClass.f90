@@ -132,7 +132,7 @@ CONTAINS
        idR=this%px(j)%eRight
        CALL RiemannSolver(this%e(idL)%QRx,this%e(idR)%QLx,F,this%e(idR)&
             &%nEqn,N,1,max(this%e(idL)%lambdamax(2),this%e(idR)%lambdamax(1)))
-       this%e(idR)%FstarL = -F
+       this%e(idR)%FstarL = F
        this%e(idL)%FstarR = F
     ENDDO
 
@@ -142,7 +142,7 @@ CONTAINS
        idR=this%py(j)%eRight
        CALL RiemannSolver(this%e(idL)%QRy,this%e(idR)%QLy,G,this%e(idR)&
             &%nEqn,N,2,max(this%e(idL)%lambdamax(4),this%e(idR)%lambdamax(3)))
-       this%e(idR)%GstarL = -G
+       this%e(idR)%GstarL = G
        this%e(idL)%GstarR = G
     ENDDO
 
@@ -152,7 +152,7 @@ CONTAINS
        idR=this%pz(j)%eRight
        CALL RiemannSolver(this%e(idL)%QRz,this%e(idR)%QLz,H,this%e(idR)&
             &%nEqn,N,3,max(this%e(idL)%lambdamax(6),this%e(idR)%lambdamax(5)))
-       this%e(idR)%HstarL = -H
+       this%e(idR)%HstarL = H
        this%e(idL)%HstarR = H
     ENDDO
     !Compute local time derivative on each element

@@ -206,7 +206,7 @@ CONTAINS
        END DO
     END DO
 
-    Fout=Fsharp-0.5_RP*lambdamax*(-QR+QL)
+    Fout=Fsharp-0.5_RP*lambdamax*(QL-QR)
   END SUBROUTINE RiemannSolver
 
   !////////////////////////////////////////////////////////////////////
