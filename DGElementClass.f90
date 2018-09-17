@@ -114,18 +114,14 @@ CONTAINS
     CALL EulerAnalyticFlux(this%QRy,GanaR,2,N,nEqn)
     CALL EulerAnalyticFlux(this%QLz,HanaL,3,N,nEqn)
     CALL EulerAnalyticFlux(this%QRz,HanaR,3,N,nEqn)
-    DO l=0,N
-       DO k=0,N
-          DO i=1,nEqn
-             Fprime(0,k,l,i)=Fprime(0,k,l,i)-(FL(k,l,i)-FanaL(k,l,i))
-             Fprime(N,k,l,i)=Fprime(N,k,l,i)+(FR(k,l,i)-FanaR(k,l,i))
-             Gprime(k,0,l,i)=Gprime(k,0,l,i)-(GL(k,l,i)-GanaL(k,l,i))
-             Gprime(k,N,l,i)=Gprime(k,N,l,i)+(GR(k,l,i)-GanaR(k,l,i))
-             Hprime(k,l,0,i)=Hprime(k,l,0,i)-(HL(k,l,i)-HanaL(k,l,i))
-             Hprime(k,l,N,i)=Hprime(k,l,N,i)+(HR(k,l,i)-HanaR(k,l,i))
-          ENDDO
-       ENDDO
-    ENDDO
+
+    Fprime(0,:,:,:)=Fprime(0,:,:,:)-(FL-FanaL(:,:,:))
+    Fprime(N,:,:,:)=Fprime(N,:,:,:)+(FR-FanaR(:,:,:))
+    Gprime(:,0,:,:)=Gprime(:,0,:,:)-(GL-GanaL(:,:,:))
+    Gprime(:,N,:,:)=Gprime(:,N,:,:)+(GR-GanaR(:,:,:))
+    Hprime(:,:,0,:)=Hprime(:,:,0,:)-(HL-HanaL(:,:,:))
+    Hprime(:,:,N,:)=Hprime(:,:,N,:)+(HR-HanaR(:,:,:))
+
     Fprime=Fprime*this%delta_x**2/4.0_RP
     Gprime=Gprime*this%delta_x**2/4.0_RP
     Hprime=Hprime*this%delta_x**2/4.0_RP
