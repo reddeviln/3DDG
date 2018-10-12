@@ -47,11 +47,7 @@ CONTAINS
     REAL(KIND=RP),DIMENSION(1:this%K,0:this%DG%N,0:this%DG%N,0:this&
          &%DG%N) :: Qplot
     INTEGER :: i,j,l
-       !u(:,:,:,:,:,:,1)=2.0_RP+SIN(pi*(xyz(:,:,:,:,:,:,1)+xyz(:,:,:,:,:,:,2)+xyz(:,:,:,:,:,:,3)))/10.0_RP
-   !u(:,:,:,:,:,:,2)=u(:,:,:,:,:,:,1)
-   !u(:,:,:,:,:,:,3)=u(:,:,:,:,:,:,1)
-   !u(:,:,:,:,:,:,4)=u(:,:,:,:,:,:,1)
-    !u(:,:,:,:,:,:,5)=u(:,:,:,:,:,:,1)*u(:,:,:,:,:,:,1)
+
     ALLOCATE(points(1:this%K,0:this%DG%N,0:this%DG%N,0:this%DG%N,3))
     CALL LegendreGaussLobattoNodesandWeights(this%DG%N,x,w)
     DO i=1,this%K
@@ -73,6 +69,8 @@ CONTAINS
                   &%e(i)%zR+this%e(i)%zL)*0.5_RP
           END DO
        END DO
+       !this%e(i)%Q(:,:,:,1:4)=1.0_RP
+       !this%e(i)%Q(:,:,:,5)=4.0_RP
        this%e(i)%Q(:,:,:,1)=2.0_RP+SIN(pi*(points(i,:,:,:,1)+points(i,:,:&
             &,:,2)+points(i,:,:,:,3)))/10.0_RP
        this%e(i)%Q(:,:,:,2)=this%e(i)%Q(:,:,:,1)
@@ -141,37 +139,37 @@ CONTAINS
     REAL(KIND=RP) :: c1,c2,c3,c4,c5,ro,rox,px,p
     INTEGER :: i,j,l,m
     c1=pi/10.0_RP
-    c2=-0.2_RP*pi+0.05_RP*pi*(1.0_RP+5.0_RP*gamma)
+    c2=-1.0_RP/5.0_RP*pi+1.0_RP/20.0_RP*pi*(1.0_RP+5.0_RP*gamma)
     c3=pi/100.0_RP*(gamma-1.0_RP)
-    c4=0.05_RP*(-16.0_RP*pi+pi*(9.0_RP+15.0_RP*gamma))
-    c5=0.01_RP*(3.0_RP*pi*gamma-2.0_RP*pi)
+    c4=1.0_RP/20.0_RP*(-16.0_RP*pi+pi*(9.0_RP+15.0_RP*gamma))
+    c5=1.0_RP/100.0_RP*(3.0_RP*pi*gamma-2.0_RP*pi)
     DO i=1,this%K
        DO m=0,this%dg%n
           DO j=0,this%dg%n
              DO l=0,this%dg%n
-                this%e(i)%res(l,j,m,1)=c1*cos(pi*(points(i,l,j,m,1)&
-                     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
-                this%e(i)%res(l,j,m,2)=c2*cos(pi*(points(i,l,j,m,1)&
-                     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))&
-                     &+c3*cos(2.0_RP*pi*(points(i,l,j,m,1)&
-                     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
-                this%e(i)%res(l,j,m,3)=this%e(i)%res(l,j,m,2)
-                this%e(i)%res(l,j,m,4)=this%e(i)%res(l,j,m,2)
-                this%e(i)%res(l,j,m,5)=c4*cos(pi*(points(i,l,j,m,1)&
-                     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))&
-                     &+c5*cos(2.0_RP*pi*(points(i,l,j,m,1)&
-                     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
-                !ro=2.0_RP+0.1_RP*sin(pi*(points(i,l,j,m,1)+points(i,l&
-                !     &,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
-                !rox=cos(pi*(points(i,l,j,m,1)+points(i,l,j,m,2)&
-                !     &+points(i,l,j,m,3)-2.0_RP*t))*pi*0.1_RP
-                !px=(gamma-1.0_RP)*((2.0_RP*ro-1.5_RP)*rox)
-                !p= (gamma-1.0_RP)*(ro**2-1.5_RP*ro)
-                !this%e(i)%res(l,j,m,1)=rox
-                !this%e(i)%res(l,j,m,2)=px+rox
+                !this%e(i)%res(l,j,m,1)=c1*cos(pi*(points(i,l,j,m,1)&
+                 !    &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
+                !this%e(i)%res(l,j,m,2)=c2*cos(pi*(points(i,l,j,m,1)&
+                !     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))&
+                !     &+c3*cos(2.0_RP*pi*(points(i,l,j,m,1)&
+                !     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
                 !this%e(i)%res(l,j,m,3)=this%e(i)%res(l,j,m,2)
                 !this%e(i)%res(l,j,m,4)=this%e(i)%res(l,j,m,2)
-                !this%e(i)%res(l,j,m,5)=2.0_RP*ro*rox+3.0_RP*px
+                !this%e(i)%res(l,j,m,5)=c4*cos(pi*(points(i,l,j,m,1)&
+                !     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))&
+                !     &+c5*cos(2.0_RP*pi*(points(i,l,j,m,1)&
+                !     &+points(i,l,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
+                ro=2.0_RP+0.1_RP*sin(pi*(points(i,l,j,m,1)+points(i,l&
+                     &,j,m,2)+points(i,l,j,m,3)-2.0_RP*t))
+                rox=cos(pi*(points(i,l,j,m,1)+points(i,l,j,m,2)&
+                     &+points(i,l,j,m,3)-2.0_RP*t))*pi*0.1_RP
+                px=(gamma-1.0_RP)*((2.0_RP*ro-1.5_RP)*rox)
+                p= (gamma-1.0_RP)*(ro**2-1.5_RP*ro)
+                this%e(i)%res(l,j,m,1)=rox
+                this%e(i)%res(l,j,m,2)=px+rox
+                this%e(i)%res(l,j,m,3)=this%e(i)%res(l,j,m,2)
+                this%e(i)%res(l,j,m,4)=this%e(i)%res(l,j,m,2)
+                this%e(i)%res(l,j,m,5)=2.0_RP*ro*rox+3.0_RP*px
              END DO
           END DO
        END DO
@@ -193,7 +191,7 @@ CONTAINS
     TYPE(DGMesh) :: previous
     REAL(KIND=RP),DIMENSION(1:this%K,0:this%DG%N,0:this%DG%N,0:this&
          &%DG%N,this%e(1)%nEqn) :: g    
-    dt=CFL/(3.0_RP*this%lambdamax)*this%e(1)%delta_x/(2*real(this%DG&
+    dt=CFL/(3.0_RP*this%lambdamax)*this%e(1)%delta_x/(real(this%DG&
          &%N,kind=rp)+1)
     dt=min(dt,tend-t)
     print*,"dt"

@@ -212,46 +212,22 @@ CONTAINS
     END DO
     DO i=1,this%K
        this%e(i)%lambdamax(1)=max(maxval(abs(this%e(i)%QLx(:,:,2)/this&
-            &%e(i)%QLx(:,:,1)+cLx(i,:,:))),maxval(abs(this%e(i)%QLx(:,:&
-            &,3)/this%e(i)%QLx(:,:,1)+cLx(i,:,:))),maxval(abs(this%e(i)&
-            &%QLx(:,:,4)/this%e(i)%QLx(:,:,1)+cLx(i,:,:))),maxval(abs(this%e(i)%QLx(:,:,2)/this&
-            &%e(i)%QLx(:,:,1)-cLx(i,:,:))),maxval(abs(this%e(i)%QLx(:,:&
-            &,3)/this%e(i)%QLx(:,:,1)-cLx(i,:,:))),maxval(abs(this%e(i)&
-            &%QLx(:,:,4)/this%e(i)%QLx(:,:,1)-cLx(i,:,:))))
+            &%e(i)%QLx(:,:,1)+cLx(i,:,:))),maxval(abs(this%e(i)%QLx(:,:,2)/this&
+            &%e(i)%QLx(:,:,1)-cLx(i,:,:))))
        this%e(i)%lambdamax(2)=max(maxval(abs(this%e(i)%QRx(:,:,2)/this&
-            &%e(i)%QRx(:,:,1)+cRx(i,:,:))),maxval(abs(this%e(i)%QRx(:,:&
-            &,3)/this%e(i)%QRx(:,:,1)+cRx(i,:,:))),maxval(abs(this%e(i)&
-            &%QRx(:,:,4)/this%e(i)%QRx(:,:,1)+cRx(i,:,:))),maxval(abs(this%e(i)%QRx(:,:,2)/this&
-            &%e(i)%QRx(:,:,1)-cRx(i,:,:))),maxval(abs(this%e(i)%QRx(:,:&
-            &,3)/this%e(i)%QRx(:,:,1)-cRx(i,:,:))),maxval(abs(this%e(i)&
-            &%QRx(:,:,4)/this%e(i)%QRx(:,:,1)-cRx(i,:,:))))
-       this%e(i)%lambdamax(3)=max(maxval(abs(this%e(i)%QLy(:,:,2)/this&
-            &%e(i)%QLy(:,:,1)+cLy(i,:,:))),maxval(abs(this%e(i)%QLy(:,:&
-            &,3)/this%e(i)%QLy(:,:,1)+cLy(i,:,:))),maxval(abs(this%e(i)&
-            &%QLy(:,:,4)/this%e(i)%QLy(:,:,1)+cLy(i,:,:))),maxval(abs(this%e(i)%QLy(:,:,2)/this&
-            &%e(i)%QLy(:,:,1)-cLy(i,:,:))),maxval(abs(this%e(i)%QLy(:,:&
-            &,3)/this%e(i)%QLy(:,:,1)-cLy(i,:,:))),maxval(abs(this%e(i)&
-            &%QLy(:,:,4)/this%e(i)%QLy(:,:,1)-cLy(i,:,:))))
-       this%e(i)%lambdamax(4)=max(maxval(abs(this%e(i)%QRy(:,:,2)/this&
-            &%e(i)%QRy(:,:,1)+cRy(i,:,:))),maxval(abs(this%e(i)%QRy(:,:&
-            &,3)/this%e(i)%QRy(:,:,1)+cRy(i,:,:))),maxval(abs(this%e(i)&
-            &%QRy(:,:,4)/this%e(i)%QRy(:,:,1)+cRy(i,:,:))),maxval(abs(this%e(i)%QRy(:,:,2)/this&
-            &%e(i)%QRy(:,:,1)-cRy(i,:,:))),maxval(abs(this%e(i)%QRy(:,:&
-            &,3)/this%e(i)%QRy(:,:,1)-cRy(i,:,:))),maxval(abs(this%e(i)&
-            &%QRy(:,:,4)/this%e(i)%QRy(:,:,1)-cRy(i,:,:))))
-       this%e(i)%lambdamax(5)=max(maxval(abs(this%e(i)%QLz(:,:,2)/this&
-            &%e(i)%QLz(:,:,1)+cLz(i,:,:))),maxval(abs(this%e(i)%QLz(:,:&
-            &,3)/this%e(i)%QLz(:,:,1)+cLz(i,:,:))),maxval(abs(this%e(i)&
-            &%QLz(:,:,4)/this%e(i)%QLz(:,:,1)+cLz(i,:,:))),maxval(abs(this%e(i)%QLz(:,:,2)/this&
-            &%e(i)%QLz(:,:,1)-cLz(i,:,:))),maxval(abs(this%e(i)%QLz(:,:&
-            &,3)/this%e(i)%QLz(:,:,1)-cLz(i,:,:))),maxval(abs(this%e(i)&
+            &%e(i)%QRx(:,:,1)+cRx(i,:,:))),maxval(abs(this%e(i)%QRx(:,:,2)/this&
+            &%e(i)%QRx(:,:,1)-cRx(i,:,:))))
+       this%e(i)%lambdamax(3)=max(maxval(abs(this%e(i)%QLy(:,:&
+            &,3)/this%e(i)%QLy(:,:,1)+cLy(i,:,:))),maxval(abs(this%e(i)%QLy(:,:&
+            &,3)/this%e(i)%QLy(:,:,1)-cLy(i,:,:))))
+       this%e(i)%lambdamax(4)=max(maxval(abs(this%e(i)%QRy(:,:&
+            &,3)/this%e(i)%QRy(:,:,1)+cRy(i,:,:))),maxval(abs(this%e(i)%QRy(:,:&
+            &,3)/this%e(i)%QRy(:,:,1)-cRy(i,:,:))))
+       this%e(i)%lambdamax(5)=max(maxval(abs(this%e(i)&
+            &%QLz(:,:,4)/this%e(i)%QLz(:,:,1)+cLz(i,:,:))),maxval(abs(this%e(i)&
             &%QLz(:,:,4)/this%e(i)%QLz(:,:,1)-cLz(i,:,:))))
-       this%e(i)%lambdamax(6)=max(maxval(abs(this%e(i)%QRz(:,:,2)/this&
-            &%e(i)%QRz(:,:,1)+cRz(i,:,:))),maxval(abs(this%e(i)%QRz(:,:&
-            &,3)/this%e(i)%QRz(:,:,1)+cRz(i,:,:))),maxval(abs(this%e(i)&
-            &%QRz(:,:,4)/this%e(i)%QRz(:,:,1)+cRz(i,:,:))),maxval(abs(this%e(i)%QRz(:,:,2)/this&
-            &%e(i)%QRz(:,:,1)-cRz(i,:,:))),maxval(abs(this%e(i)%QRz(:,:&
-            &,3)/this%e(i)%QRz(:,:,1)-cRz(i,:,:))),maxval(abs(this%e(i)&
+       this%e(i)%lambdamax(6)=max(maxval(abs(this%e(i)&
+            &%QRz(:,:,4)/this%e(i)%QRz(:,:,1)+cRz(i,:,:))),maxval(abs(this%e(i)&
             &%QRz(:,:,4)/this%e(i)%QRz(:,:,1)-cRz(i,:,:))))
     END DO
     

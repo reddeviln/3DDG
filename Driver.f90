@@ -5,7 +5,7 @@ PROGRAM Driver
   REAL(KIND=RP) :: xmin=-1.0_RP,xmax=1.0_RP,ymin=-1.0_RP,ymax=1.0_RP&
        &,zmin=-1.0_RP,zmax=1.0_RP
   TYPE(DGMesh)  :: Simulation
-  INTEGER,PARAMETER       :: NQ=5,N=3,nEqn=5
+  INTEGER,PARAMETER       :: NQ=8,N=3,nEqn=5
   INTEGER       :: i,m=0,j=0
   CHARACTER(len=3) :: numChar
   CHARACTER(len=24) :: fname ='../Plots/Movies/UXXX.tec'
@@ -37,7 +37,7 @@ PROGRAM Driver
            fName(18:19) = "00"
            fName(20:20)=numChar(3:3)
         END IF
-        CALL preparePlot(Simulation,fName,1)
+        CALL preparePlot(Simulation,fName,5)
      END IF
      j=j+1
   END DO
